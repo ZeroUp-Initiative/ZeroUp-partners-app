@@ -1,0 +1,457 @@
+"use client"
+
+import { AuthGuard, useAuth } from "@/components/auth-guard"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Input } from "@/components/ui/input"
+import { Trophy, Medal, Award, LogOut, Search, Users, TrendingUp, Crown, Star } from "lucide-react"
+import Link from "next/link"
+
+function CommunityContent() {
+  const { user, logout } = useAuth()
+
+  // Mock leaderboard data
+  const leaderboard = [
+    {
+      rank: 1,
+      name: "Sarah Johnson",
+      organization: "Tech for Good",
+      totalContributions: 8500,
+      impactScore: 98,
+      badges: 12,
+      avatar: "SJ",
+    },
+    {
+      rank: 2,
+      name: "Michael Chen",
+      organization: "Global Impact Corp",
+      totalContributions: 7200,
+      impactScore: 96,
+      badges: 10,
+      avatar: "MC",
+    },
+    {
+      rank: 3,
+      name: "Emily Rodriguez",
+      organization: "Change Makers Inc",
+      totalContributions: 6800,
+      impactScore: 95,
+      badges: 11,
+      avatar: "ER",
+    },
+    {
+      rank: 4,
+      name: user?.name || "You",
+      organization: user?.organization || "Individual Partner",
+      totalContributions: 3350,
+      impactScore: 94,
+      badges: 7,
+      avatar: user?.name?.charAt(0)?.toUpperCase() || "U",
+      isCurrentUser: true,
+    },
+    {
+      rank: 5,
+      name: "David Kim",
+      organization: "Innovation Hub",
+      totalContributions: 3100,
+      impactScore: 92,
+      badges: 8,
+      avatar: "DK",
+    },
+  ]
+
+  const topContributors = [
+    { name: "Sarah Johnson", amount: 8500, period: "All time" },
+    { name: "Michael Chen", amount: 1200, period: "This month" },
+    { name: "Emily Rodriguez", amount: 950, period: "This week" },
+  ]
+
+  const recentActivities = [
+    {
+      user: "Sarah Johnson",
+      action: "earned the 'Impact Champion' badge",
+      time: "2 hours ago",
+      type: "achievement",
+    },
+    {
+      user: "Michael Chen",
+      action: "contributed $500 to Education Initiative",
+      time: "5 hours ago",
+      type: "contribution",
+    },
+    {
+      user: "Emily Rodriguez",
+      action: "reached 95% impact score",
+      time: "1 day ago",
+      type: "milestone",
+    },
+    {
+      user: "David Kim",
+      action: "joined the Healthcare project",
+      time: "2 days ago",
+      type: "project",
+    },
+  ]
+
+  const getRankIcon = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return <Crown className="w-5 h-5 text-yellow-500" />
+      case 2:
+        return <Medal className="w-5 h-5 text-gray-400" />
+      case 3:
+        return <Award className="w-5 h-5 text-amber-600" />
+      default:
+        return (
+          <span className="w-5 h-5 flex items-center justify-center text-sm font-bold text-muted-foreground">
+            #{rank}
+          </span>
+        )
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border bg-card/50 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Link href="/dashboard">
+                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors">
+                  <span className="text-primary-foreground font-bold text-lg">Z</span>
+                </div>
+              </Link>
+              <div>
+                <h1 className="text-xl font-bold text-foreground">Community</h1>
+                <p className="text-sm text-muted-foreground">Connect with fellow partners</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <nav className="hidden md:flex items-center gap-4">
+                <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Dashboard
+                </Link>
+                <Link href="/contributions" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Contributions
+                </Link>
+                <Link href="/analytics" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Analytics
+                </Link>
+              </nav>
+              <div className="flex items-center gap-3">
+                <Avatar>
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="hidden md:block">
+                  <p className="text-sm font-medium">{user?.name}</p>
+                  <p className="text-xs text-muted-foreground">{user?.organization || "Individual Partner"}</p>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" onClick={logout}>
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-8">
+        <div className="space-y-8">
+          {/* Header */}
+          <div className="space-y-2">
+            <h2 className="text-3xl font-bold text-balance">Partner Community</h2>
+            <p className="text-muted-foreground">
+              Connect with other partners, celebrate achievements, and see who's making the biggest impact.
+            </p>
+          </div>
+
+          {/* Community Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Partners</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">2,547</div>
+                <p className="text-xs text-muted-foreground">+12% this month</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Active This Month</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">1,892</div>
+                <p className="text-xs text-muted-foreground">74% of all partners</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Raised</CardTitle>
+                <Trophy className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">$1.2M</div>
+                <p className="text-xs text-muted-foreground">This year</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Your Rank</CardTitle>
+                <Star className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">#4</div>
+                <p className="text-xs text-muted-foreground">Top 1% of partners</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Main Content Tabs */}
+          <Tabs defaultValue="leaderboard" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
+              <TabsTrigger value="activity">Recent Activity</TabsTrigger>
+              <TabsTrigger value="recognition">Recognition</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="leaderboard" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Main Leaderboard */}
+                <div className="lg:col-span-2">
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle>Partner Leaderboard</CardTitle>
+                          <CardDescription>Top contributors making the biggest impact</CardDescription>
+                        </div>
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input placeholder="Search partners..." className="pl-10 w-64" />
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {leaderboard.map((partner) => (
+                          <div
+                            key={partner.rank}
+                            className={`flex items-center gap-4 p-4 rounded-lg transition-colors ${
+                              partner.isCurrentUser
+                                ? "bg-primary/10 border border-primary/20"
+                                : "bg-muted/50 hover:bg-muted/70"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              {getRankIcon(partner.rank)}
+                              <Avatar className="w-10 h-10">
+                                <AvatarFallback
+                                  className={partner.isCurrentUser ? "bg-primary text-primary-foreground" : ""}
+                                >
+                                  {partner.avatar}
+                                </AvatarFallback>
+                              </Avatar>
+                            </div>
+
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <p className="font-semibold">{partner.name}</p>
+                                {partner.isCurrentUser && <Badge variant="secondary">You</Badge>}
+                              </div>
+                              <p className="text-sm text-muted-foreground">{partner.organization}</p>
+                            </div>
+
+                            <div className="text-right space-y-1">
+                              <p className="font-bold">${partner.totalContributions.toLocaleString()}</p>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <span>Score: {partner.impactScore}</span>
+                                <Badge variant="outline" className="text-xs">
+                                  {partner.badges} badges
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Top Contributors Sidebar */}
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Top Contributors</CardTitle>
+                      <CardDescription>Leading partners by period</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {topContributors.map((contributor, index) => (
+                          <div key={index} className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium">{contributor.name}</p>
+                              <p className="text-sm text-muted-foreground">{contributor.period}</p>
+                            </div>
+                            <p className="font-bold">${contributor.amount.toLocaleString()}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Your Progress</CardTitle>
+                      <CardDescription>How you're doing this month</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <span>Monthly Goal</span>
+                          <span className="font-bold">85%</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>Rank Change</span>
+                          <Badge variant="secondary">+2</Badge>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>Impact Score</span>
+                          <span className="font-bold">94</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="activity" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Community Activity</CardTitle>
+                  <CardDescription>Recent achievements and contributions from the community</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {recentActivities.map((activity, index) => (
+                      <div key={index} className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            activity.type === "achievement"
+                              ? "bg-secondary"
+                              : activity.type === "contribution"
+                                ? "bg-primary"
+                                : activity.type === "milestone"
+                                  ? "bg-accent"
+                                  : "bg-muted-foreground"
+                          }`}
+                        ></div>
+                        <div className="flex-1">
+                          <p>
+                            <span className="font-medium">{activity.user}</span> {activity.action}
+                          </p>
+                          <p className="text-sm text-muted-foreground">{activity.time}</p>
+                        </div>
+                        <Badge variant="outline" className="capitalize">
+                          {activity.type}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="recognition" className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Partner of the Month</CardTitle>
+                    <CardDescription>Celebrating outstanding contributions</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center space-y-4">
+                      <Avatar className="w-20 h-20 mx-auto">
+                        <AvatarFallback className="bg-primary text-primary-foreground text-2xl">SJ</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="text-xl font-bold">Sarah Johnson</h3>
+                        <p className="text-muted-foreground">Tech for Good</p>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm">
+                          "Sarah's exceptional dedication and $1,200 contribution this month helped fund three new
+                          education projects, directly impacting 300+ students."
+                        </p>
+                        <Badge variant="secondary" className="text-xs">
+                          <Trophy className="w-3 h-3 mr-1" />
+                          Partner of the Month
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Recent Achievements</CardTitle>
+                    <CardDescription>Community milestones and badges</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 p-3 bg-secondary/10 rounded-lg">
+                        <Award className="w-8 h-8 text-secondary" />
+                        <div>
+                          <p className="font-medium">$1M Milestone Reached!</p>
+                          <p className="text-sm text-muted-foreground">Community total contributions</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 p-3 bg-primary/10 rounded-lg">
+                        <Users className="w-8 h-8 text-primary" />
+                        <div>
+                          <p className="font-medium">2,500 Partners Strong</p>
+                          <p className="text-sm text-muted-foreground">Growing community</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 p-3 bg-accent/10 rounded-lg">
+                        <TrendingUp className="w-8 h-8 text-accent" />
+                        <div>
+                          <p className="font-medium">150 Projects Funded</p>
+                          <p className="text-sm text-muted-foreground">Real impact achieved</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </main>
+    </div>
+  )
+}
+
+export default function CommunityPage() {
+  return (
+    <AuthGuard>
+      <CommunityContent />
+    </AuthGuard>
+  )
+}
