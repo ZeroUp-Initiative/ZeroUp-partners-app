@@ -7,6 +7,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { PageTransition } from "@/components/page-transition"
 import { GamificationProvider } from "@/components/gamification-provider"
+import { AuthProvider } from "@/contexts/auth-context"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -64,11 +65,13 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}>
       <body className={`font-sans ${inter.variable} ${jetbrainsMono.variable} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange={false}>
-          <GamificationProvider>
-            <PageTransition>
-              <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
-            </PageTransition>
-          </GamificationProvider>
+          <AuthProvider>
+            <GamificationProvider>
+              <PageTransition>
+                <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
+              </PageTransition>
+            </GamificationProvider>
+          </AuthProvider>
         </ThemeProvider>
         <Analytics />
       </body>

@@ -11,6 +11,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Eye, EyeOff, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { signInWithEmailAndPassword } from "firebase/auth"
+import { auth } from "@/lib/firebase/client"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -26,23 +28,19 @@ export default function LoginPage() {
     setError("")
 
     try {
-      // Simulate authentication - replace with actual auth logic
-      if (email && password) {
-        // Store user session (replace with proper auth)
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            email,
-            name: email.split("@")[0],
-            id: Date.now().toString(),
-          }),
-        )
-        router.push("/dashboard")
-      } else {
-        setError("Please enter both email and password")
+      await signInWithEmailAndPassword(auth, email, password)
+      // The user session is now managed by Firebase.
+      // We can redirect to the dashboard.
+      router.push("/dashboard")
+    } catch (err: any) {
+      // Handle Firebase errors
+      let errorMessage = "Login failed. Please check your credentials."
+      if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
+        errorMessage = "Invalid email or password. Please try again."
+      } else if (err.code) {
+        errorMessage = err.message
       }
-    } catch (err) {
-      setError("Login failed. Please try again.")
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -134,21 +132,12 @@ export default function LoginPage() {
 
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
-                Don't have an account?{" "}
+                Don\'t have an account?{" "}
                 <Link href="/signup" className="text-primary hover:underline font-medium">
                   Sign up
                 </Link>
               </p>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Demo Credentials */}
-        <Card className="bg-muted/50 border-dashed">
-          <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground text-center">
-              <strong>Demo:</strong> Use any email and password to sign in
-            </p>
           </CardContent>
         </Card>
       </div>

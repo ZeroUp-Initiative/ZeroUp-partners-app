@@ -1,6 +1,7 @@
 "use client"
 
-import { AuthGuard, useAuth } from "@/components/auth-guard"
+import ProtectedRoute from "@/components/auth/protected-route"
+import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -9,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { TrendingUp, Target, Award, LogOut, Calendar, LucidePieChart, Activity } from "lucide-react"
 import Link from "next/link"
+import { auth } from "@/lib/firebase/client"
 import {
   LineChart,
   Line,
@@ -26,7 +28,11 @@ import {
 } from "recharts"
 
 function AnalyticsContent() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
+
+  const logout = async () => {
+    await auth.signOut()
+  }
 
   // Mock data for charts
   const monthlyData = [
@@ -98,12 +104,11 @@ function AnalyticsContent() {
               <div className="flex items-center gap-3">
                 <Avatar className="ring-2 ring-primary/20">
                   <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
-                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                    {user?.firstName?.charAt(0)?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden md:block">
-                  <p className="text-sm font-medium">{user?.name}</p>
-                  <p className="text-xs text-muted-foreground">{user?.organization || "Individual Partner"}</p>
+                  <p className="text-sm font-medium">{`${user?.firstName} ${user?.lastName}`}</p>
                 </div>
               </div>
               <Button
@@ -415,8 +420,8 @@ function AnalyticsContent() {
 
 export default function AnalyticsPage() {
   return (
-    <AuthGuard>
+    <ProtectedRoute>
       <AnalyticsContent />
-    </AuthGuard>
+    </ProtectedRoute>
   )
 }

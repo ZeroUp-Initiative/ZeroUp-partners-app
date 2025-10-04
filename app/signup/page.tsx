@@ -1,7 +1,6 @@
-"use client"
+'use client'
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,6 +11,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { createUserWithEmailAndPassword } from "firebase/auth"
+import { doc, setDoc } from "firebase/firestore"
+import { auth, db } from "@/lib/firebase/client"
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -38,35 +40,42 @@ export default function SignupPage() {
     setIsLoading(true)
     setError("")
 
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match")
+      setIsLoading(false)
+      return
+    }
+
+    if (!formData.agreeToTerms) {
+      setError("Please agree to the terms and conditions")
+      setIsLoading(false)
+      return
+    }
+
     try {
-      // Validation
-      if (formData.password !== formData.confirmPassword) {
-        setError("Passwords do not match")
-        return
-      }
+      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password)
+      const user = userCredential.user
 
-      if (!formData.agreeToTerms) {
-        setError("Please agree to the terms and conditions")
-        return
-      }
+      // Create a user document in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        organization: formData.organization || null,
+        createdAt: new Date(),
+      })
 
-      if (formData.firstName && formData.lastName && formData.email && formData.password) {
-        // Store user session (replace with proper auth)
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            email: formData.email,
-            name: `${formData.firstName} ${formData.lastName}`,
-            organization: formData.organization,
-            id: Date.now().toString(),
-          }),
-        )
-        router.push("/dashboard")
-      } else {
-        setError("Please fill in all required fields")
+      router.push("/dashboard")
+    } catch (err: any) {
+      let errorMessage = "Signup failed. Please try again."
+      if (err.code === "auth/email-already-in-use") {
+        errorMessage = "An account with this email already exists."
+      } else if (err.code === "auth/weak-password") {
+        errorMessage = "The password is too weak. Please use at least 6 characters."
+      } else if (err.code) {
+        errorMessage = err.message
       }
-    } catch (err) {
-      setError("Signup failed. Please try again.")
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }

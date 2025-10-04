@@ -2,7 +2,8 @@
 
 import type React from "react"
 
-import { AuthGuard, useAuth } from "@/components/auth-guard"
+import ProtectedRoute from "@/components/auth/protected-route"
+import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -14,9 +15,10 @@ import { ArrowLeft, Upload, LogOut, DollarSign, FileText, Calendar } from "lucid
 import Link from "next/link"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { auth } from "@/lib/firebase/client"
 
 function NewContributionContent() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const router = useRouter()
   const [formData, setFormData] = useState({
     amount: "",
@@ -27,6 +29,10 @@ function NewContributionContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+
+  const logout = async () => {
+    await auth.signOut()
+  }
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -106,12 +112,11 @@ function NewContributionContent() {
               <div className="flex items-center gap-3">
                 <Avatar>
                   <AvatarFallback className="bg-primary text-primary-foreground">
-                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                    {user?.firstName?.charAt(0)?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden md:block">
-                  <p className="text-sm font-medium">{user?.name}</p>
-                  <p className="text-xs text-muted-foreground">{user?.organization || "Individual Partner"}</p>
+                  <p className="text-sm font-medium">{`${user?.firstName} ${user?.lastName}`}</p>
                 </div>
               </div>
               <Button variant="outline" size="sm" onClick={logout}>
@@ -270,8 +275,8 @@ function NewContributionContent() {
 
 export default function NewContributionPage() {
   return (
-    <AuthGuard>
+    <ProtectedRoute>
       <NewContributionContent />
-    </AuthGuard>
+    </ProtectedRoute>
   )
 }

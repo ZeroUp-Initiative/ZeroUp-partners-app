@@ -1,6 +1,7 @@
 "use client"
 
-import { AuthGuard, useAuth } from "@/components/auth-guard"
+import ProtectedRoute from "@/components/auth/protected-route"
+import { useAuth } from "@/contexts/auth-context"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { CoinDropAnimation } from "@/components/coin-drop-animation"
 import { SlotMachineCounter } from "@/components/slot-machine-counter"
@@ -29,11 +30,16 @@ import Link from "next/link"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { useState, useEffect } from "react"
+import { auth } from "@/lib/firebase/client"
 
 function DreamersCoinContent() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const [showCoinDrop, setShowCoinDrop] = useState(false)
   const [redeemingPerk, setRedeemingPerk] = useState<number | null>(null)
+
+  const logout = async () => {
+    await auth.signOut()
+  }
 
   // Calculate coins based on rank (higher rank = more coins)
   const calculateCoinsFromRank = (rank: number) => {
@@ -73,12 +79,11 @@ function DreamersCoinContent() {
     },
     {
       rank: 4,
-      name: user?.name || "You",
-      organization: user?.organization || "Individual Partner",
+      name: user?.email || "You",
+      organization: "Individual Partner",
       totalContributions: 3350,
       coins: 400,
-      avatar: user?.name?.charAt(0)?.toUpperCase() || "U",
-      isCurrentUser: true,
+      avatar: user?.email?.charAt(0)?.toUpperCase() || "U",
     },
     {
       rank: 5,
@@ -90,8 +95,8 @@ function DreamersCoinContent() {
     },
   ]
 
-  const userCoins = leaderboard.find((p) => p.isCurrentUser)?.coins || 400
-  const userRank = leaderboard.find((p) => p.isCurrentUser)?.rank || 4
+  const userCoins = leaderboard.find((p) => p.name === user?.email)?.coins || 400
+  const userRank = leaderboard.find((p) => p.name === user?.email)?.rank || 4
 
   // Available perks for redemption
   const availablePerks = [
@@ -283,12 +288,11 @@ function DreamersCoinContent() {
               >
                 <Avatar className="ring-2 ring-primary/20 neon-glow-blue">
                   <AvatarFallback className="bg-primary text-primary-foreground">
-                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                    {user?.email?.charAt(0)?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden md:block">
-                  <p className="text-sm font-medium">{user?.name}</p>
-                  <p className="text-xs text-muted-foreground">{user?.organization || "Individual Partner"}</p>
+                  <p className="text-sm font-medium">{user?.email}</p>
                 </div>
               </motion.div>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -462,7 +466,7 @@ function DreamersCoinContent() {
                         <motion.div
                           key={partner.rank}
                           className={`flex items-center gap-4 p-4 rounded-lg transition-all duration-300 glass-card hover-tilt animate-fade-in ${
-                            partner.isCurrentUser
+                            partner.name === user?.email
                               ? "bg-primary/10 border border-primary/20 neon-glow-accent"
                               : "hover:bg-muted/70"
                           }`}
@@ -487,7 +491,7 @@ function DreamersCoinContent() {
                             </motion.div>
                             <Avatar className="w-10 h-10">
                               <AvatarFallback
-                                className={partner.isCurrentUser ? "bg-primary text-primary-foreground" : ""}
+                                className={partner.name === user?.email ? "bg-primary text-primary-foreground" : ""}
                               >
                                 {partner.avatar}
                               </AvatarFallback>
@@ -497,7 +501,7 @@ function DreamersCoinContent() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <p className="font-semibold">{partner.name}</p>
-                              {partner.isCurrentUser && <Badge variant="secondary">You</Badge>}
+                              {partner.name === user?.email && <Badge variant="secondary">You</Badge>}
                             </div>
                             <p className="text-sm text-muted-foreground">{partner.organization}</p>
                           </div>
@@ -674,8 +678,8 @@ function DreamersCoinContent() {
 
 export default function DreamersCoinPage() {
   return (
-    <AuthGuard>
+    <ProtectedRoute>
       <DreamersCoinContent />
-    </AuthGuard>
+    </ProtectedRoute>
   )
 }

@@ -1,6 +1,7 @@
 "use client"
 
-import { AuthGuard, useAuth } from "@/components/auth-guard"
+import ProtectedRoute from "@/components/auth/protected-route"
+import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -9,9 +10,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { BookOpen, LogOut, FileText, Video, Download, Search, Calendar, Eye } from "lucide-react"
 import Link from "next/link"
+import { auth } from "@/lib/firebase/client"
 
 function ResourcesContent() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
+
+  const logout = async () => {
+    await auth.signOut()
+  }
 
   // Mock resources data
   const reports = [
@@ -171,12 +177,11 @@ function ResourcesContent() {
               <div className="flex items-center gap-3">
                 <Avatar>
                   <AvatarFallback className="bg-primary text-primary-foreground">
-                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                    {user?.email?.charAt(0)?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden md:block">
-                  <p className="text-sm font-medium">{user?.name}</p>
-                  <p className="text-xs text-muted-foreground">{user?.organization || "Individual Partner"}</p>
+                  <p className="text-sm font-medium">{user?.email}</p>
                 </div>
               </div>
               <Button variant="outline" size="sm" onClick={logout}>
@@ -410,8 +415,8 @@ function ResourcesContent() {
 
 export default function ResourcesPage() {
   return (
-    <AuthGuard>
+    <ProtectedRoute>
       <ResourcesContent />
-    </AuthGuard>
+    </ProtectedRoute>
   )
 }

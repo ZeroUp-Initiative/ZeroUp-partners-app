@@ -1,6 +1,7 @@
 "use client"
 
-import { AuthGuard, useAuth } from "@/components/auth-guard"
+import ProtectedRoute from "@/components/auth/protected-route"
+import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -11,13 +12,18 @@ import { Label } from "@/components/ui/label"
 import { Bell, LogOut, CheckCircle, AlertCircle, Info, Trophy, Mail, Smartphone, Settings } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
+import { auth } from "@/lib/firebase/client"
 
 function NotificationsContent() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [pushNotifications, setPushNotifications] = useState(true)
   const [achievementNotifications, setAchievementNotifications] = useState(true)
   const [contributionReminders, setContributionReminders] = useState(true)
+
+  const logout = async () => {
+    await auth.signOut()
+  }
 
   // Mock notifications data
   const notifications = [
@@ -135,11 +141,11 @@ function NotificationsContent() {
               <div className="flex items-center gap-3">
                 <Avatar>
                   <AvatarFallback className="bg-primary text-primary-foreground">
-                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                    {user?.firstName?.charAt(0)?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden md:block">
-                  <p className="text-sm font-medium">{user?.name}</p>
+                  <p className="text-sm font-medium">{`${user?.firstName} ${user?.lastName}`}</p>
                   <p className="text-xs text-muted-foreground">{user?.organization || "Individual Partner"}</p>
                 </div>
               </div>
@@ -382,8 +388,8 @@ function NotificationsContent() {
 
 export default function NotificationsPage() {
   return (
-    <AuthGuard>
+    <ProtectedRoute>
       <NotificationsContent />
-    </AuthGuard>
+    </ProtectedRoute>
   )
 }

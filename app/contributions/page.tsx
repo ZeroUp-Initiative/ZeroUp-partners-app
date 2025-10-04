@@ -1,6 +1,7 @@
 "use client"
 
-import { AuthGuard, useAuth } from "@/components/auth-guard"
+import ProtectedRoute from "@/components/auth/protected-route"
+import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -8,9 +9,14 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus, LogOut, DollarSign, Calendar, FileText, CheckCircle, Clock, AlertCircle } from "lucide-react"
 import Link from "next/link"
+import { auth } from "@/lib/firebase/client"
 
 function ContributionsContent() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
+
+  const logout = async () => {
+    await auth.signOut()
+  }
 
   // Mock contribution data - replace with actual data fetching
   const contributions = [
@@ -109,11 +115,11 @@ function ContributionsContent() {
               <div className="flex items-center gap-3">
                 <Avatar className="ring-2 ring-primary/20">
                   <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
-                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                    {user?.firstName?.charAt(0)?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden md:block">
-                  <p className="text-sm font-medium">{user?.name}</p>
+                  <p className="text-sm font-medium">{`${user?.firstName} ${user?.lastName}`}</p>
                   <p className="text-xs text-muted-foreground">{user?.organization || "Individual Partner"}</p>
                 </div>
               </div>
@@ -398,8 +404,8 @@ function ContributionsContent() {
 
 export default function ContributionsPage() {
   return (
-    <AuthGuard>
+    <ProtectedRoute>
       <ContributionsContent />
-    </AuthGuard>
+    </ProtectedRoute>
   )
 }

@@ -1,6 +1,7 @@
 "use client"
 
-import { AuthGuard, useAuth } from "@/components/auth-guard"
+import ProtectedRoute from "@/components/auth/protected-route"
+import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -9,9 +10,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Trophy, Medal, Award, LogOut, Search, Users, TrendingUp, Crown, Star } from "lucide-react"
 import Link from "next/link"
+import { auth } from "@/lib/firebase/client"
 
 function CommunityContent() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
+
+  const logout = async () => {
+    await auth.signOut()
+  }
 
   // Mock leaderboard data
   const leaderboard = [
@@ -44,13 +50,12 @@ function CommunityContent() {
     },
     {
       rank: 4,
-      name: user?.name || "You",
+      name: user ? `${user.firstName} ${user.lastName}` : "You",
       organization: user?.organization || "Individual Partner",
       totalContributions: 3350,
       impactScore: 94,
       badges: 7,
-      avatar: user?.name?.charAt(0)?.toUpperCase() || "U",
-      isCurrentUser: true,
+      avatar: user?.firstName?.charAt(0)?.toUpperCase() || "U",
     },
     {
       rank: 5,
@@ -145,11 +150,11 @@ function CommunityContent() {
               <div className="flex items-center gap-3">
                 <Avatar>
                   <AvatarFallback className="bg-primary text-primary-foreground">
-                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                    {user?.firstName?.charAt(0)?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden md:block">
-                  <p className="text-sm font-medium">{user?.name}</p>
+                  <p className="text-sm font-medium">{`${user?.firstName} ${user?.lastName}`}</p>
                   <p className="text-xs text-muted-foreground">{user?.organization || "Individual Partner"}</p>
                 </div>
               </div>
@@ -251,7 +256,7 @@ function CommunityContent() {
                           <div
                             key={partner.rank}
                             className={`flex items-center gap-4 p-4 rounded-lg transition-colors ${
-                              partner.isCurrentUser
+                              partner.rank === 4
                                 ? "bg-primary/10 border border-primary/20"
                                 : "bg-muted/50 hover:bg-muted/70"
                             }`}
@@ -260,7 +265,7 @@ function CommunityContent() {
                               {getRankIcon(partner.rank)}
                               <Avatar className="w-10 h-10">
                                 <AvatarFallback
-                                  className={partner.isCurrentUser ? "bg-primary text-primary-foreground" : ""}
+                                  className={partner.rank === 4 ? "bg-primary text-primary-foreground" : ""}
                                 >
                                   {partner.avatar}
                                 </AvatarFallback>
@@ -270,7 +275,7 @@ function CommunityContent() {
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
                                 <p className="font-semibold">{partner.name}</p>
-                                {partner.isCurrentUser && <Badge variant="secondary">You</Badge>}
+                                {partner.rank === 4 && <Badge variant="secondary">You</Badge>}
                               </div>
                               <p className="text-sm text-muted-foreground">{partner.organization}</p>
                             </div>
@@ -450,8 +455,8 @@ function CommunityContent() {
 
 export default function CommunityPage() {
   return (
-    <AuthGuard>
+    <ProtectedRoute>
       <CommunityContent />
-    </AuthGuard>
+    </ProtectedRoute>
   )
 }
