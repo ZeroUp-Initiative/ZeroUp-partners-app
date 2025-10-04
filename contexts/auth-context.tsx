@@ -2,9 +2,8 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { doc, getDoc, DocumentData } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/client';
-import {parseCookies, setCookie} from "nookies";
 
 interface UserProfile {
   firstName: string;
@@ -50,16 +49,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    const cookies = parseCookies();
-    if (!cookies.hasVisited) {
-      setCookie(null, 'hasVisited', 'true', {
-        maxAge: 30 * 24 * 60 * 60, // 30 days
-        path: '/',
-      });
-    }
   }, []);
 
   return (
