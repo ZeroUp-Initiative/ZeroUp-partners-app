@@ -46,11 +46,9 @@ export default function LoginPage() {
     setIsLoading(true)
     setError({ title: "", message: "" })
 
-    const toastId = toast.loading("Signing in...");
-
     try {
       await signInWithEmailAndPassword(auth, email, password)
-      toast.success("Login successful! Redirecting...", { id: toastId });
+      toast.success("Login successful! Redirecting...");
       // The useEffect will handle the redirect automatically.
     } catch (err: any) {
       let errorTitle = "Login Failed"
@@ -79,8 +77,9 @@ export default function LoginPage() {
           console.error("Firebase Auth Error:", err)
           break
       }
-      toast.error(errorTitle, { id: toastId });
+      toast.error(errorMessage);
       setError({ title: errorTitle, message: errorMessage })
+    } finally {
       setIsLoading(false)
     }
   }

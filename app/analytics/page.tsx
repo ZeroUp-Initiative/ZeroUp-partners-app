@@ -1,16 +1,13 @@
-"use client"
+'use client'
 
 import ProtectedRoute from "@/components/auth/protected-route"
 import { useAuth } from "@/contexts/auth-context"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
-import { TrendingUp, Target, Award, LogOut, Calendar, LucidePieChart, Activity } from "lucide-react"
-import Link from "next/link"
-import { auth } from "@/lib/firebase/client"
+import { TrendingUp, Target, Award, Calendar, LucidePieChart, Activity } from "lucide-react"
+import Header from "@/components/layout/header"
 import {
   LineChart,
   Line,
@@ -29,10 +26,6 @@ import {
 
 function AnalyticsContent() {
   const { user } = useAuth()
-
-  const logout = async () => {
-    await auth.signOut()
-  }
 
   // Mock data for charts
   const monthlyData = [
@@ -66,64 +59,7 @@ function AnalyticsContent() {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-accent/5 rounded-full blur-3xl animate-pulse delay-500"></div>
       </div>
 
-      <header className="border-b border-border/20 bg-card/30 backdrop-blur-xl relative z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Link href="/dashboard">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center cursor-pointer hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-primary/25">
-                  <span className="text-primary-foreground font-bold text-lg">Z</span>
-                </div>
-              </Link>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">Analytics</h1>
-                <p className="text-sm text-muted-foreground">Track your impact and performance</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <nav className="hidden md:flex items-center gap-4">
-                <Link
-                  href="/dashboard"
-                  className="text-muted-foreground hover:text-primary transition-colors duration-300"
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href="/contributions"
-                  className="text-muted-foreground hover:text-primary transition-colors duration-300"
-                >
-                  Contributions
-                </Link>
-                <Link
-                  href="/community"
-                  className="text-muted-foreground hover:text-primary transition-colors duration-300"
-                >
-                  Community
-                </Link>
-              </nav>
-              <div className="flex items-center gap-3">
-                <Avatar className="ring-2 ring-primary/20">
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
-                    {user?.firstName?.charAt(0)?.toUpperCase() || "U"}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="hidden md:block">
-                  <p className="text-sm font-medium">{`${user?.firstName} ${user?.lastName}`}</p>
-                </div>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={logout}
-                className="glass-card hover:scale-105 transition-all duration-300 bg-transparent"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header title="Analytics" subtitle="Track your impact and performance" />
 
       <main className="container mx-auto px-4 py-8 relative z-10">
         <div className="space-y-8">
@@ -364,7 +300,7 @@ function AnalyticsContent() {
                       <div className="flex items-center gap-3 p-3 glass-card border-accent/20 hover:border-accent/40 transition-all duration-300">
                         <TrendingUp className="w-8 h-8 text-accent" />
                         <div>
-                          <p className="font-medium">Impact Leader</p>
+                          <p className-="font-medium">Impact Leader</p>
                           <p className="text-sm text-muted-foreground">Top 10% impact score</p>
                         </div>
                       </div>
@@ -402,7 +338,7 @@ function AnalyticsContent() {
                   </div>
                   <h4 className="font-semibold">Mobile Health Clinic</h4>
                   <p className="text-sm text-muted-foreground">
-                    Funded medical supplies and equipment for mobile clinics that served 500+ patients in underserved
+                    Funded medical supplies and equipment for mobile clinics that.tsx served 500+ patients in underserved
                     areas, providing essential healthcare access.
                   </p>
                   <Badge variant="outline" className="animate-pulse">

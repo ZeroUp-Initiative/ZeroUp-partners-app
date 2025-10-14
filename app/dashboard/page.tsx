@@ -4,16 +4,14 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
-import { auth, db } from "@/lib/firebase/client"
+import { db } from "@/lib/firebase/client"
 import { collection, query, where, onSnapshot } from "firebase/firestore"
 import ProtectedRoute from "@/components/auth/protected-route"
+import Header from "@/components/layout/header"
 
 // UI Components
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { DollarSign, Target, TrendingUp, Award, Plus, BarChart, Users, LogOut, Heart } from "lucide-react"
+import { DollarSign, Target, TrendingUp, Award, Plus, BarChart, Users, Heart } from "lucide-react"
 
 function DashboardPage() {
   const { user } = useAuth()
@@ -56,56 +54,9 @@ function DashboardPage() {
     }
   }, [user]);
 
-
-  const logout = async () => {
-    await auth.signOut()
-  }
-
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Link href="/dashboard" className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-lg">Z</span>
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-foreground">Partners Hub</h1>
-                  <p className="text-sm text-muted-foreground">Partner Dashboard</p>
-                </div>
-              </Link>
-            </div>
-            <div className="flex items-center gap-4">
-              <nav className="hidden md:flex items-center gap-4 text-sm font-medium">
-                <Link href="/contributions" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Contributions
-                </Link>
-                <Link href="/projects" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Projects
-                </Link>
-              </nav>
-              <div className="flex items-center gap-3">
-                <Avatar>
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    {user?.firstName?.charAt(0)?.toUpperCase() || "U"}
-                  </AvatarFallback>
-                </Avatar>
-                 <div className="hidden md:block text-right">
-                  <p className="text-sm font-bold">{user?.firstName} {user?.lastName}</p>
-                  <p className="text-xs text-muted-foreground">Individual Partner</p>
-                </div>
-              </div>
-              <Button variant="outline" size="sm" onClick={logout}>
-                <LogOut className="w-4 h-4 mr-2 md:mr-0" />
-                <span className="hidden md:inline ml-2">Logout</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header title="Partners Hub" subtitle="Partner Dashboard" />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
@@ -117,7 +68,7 @@ function DashboardPage() {
                     Welcome back, {user?.firstName || "Partner"}!
                   </h2>
                   <p className="text-muted-foreground">
-                    Track your contributions and see the impact you\'re making through the ZeroUp Initiative.
+                    Track your contributions and see the impact you're making through the ZeroUp Initiative.
                   </p>
                 </div>
               </div>
