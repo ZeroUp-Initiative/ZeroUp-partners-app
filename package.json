@@ -9,6 +9,7 @@
     "start": "next start",
     "test": "jest"
   },
+  "packageManager": "pnpm@10.27.0",
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
     "@hookform/resolvers": "^3.10.0",
