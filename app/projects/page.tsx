@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from "react"
-import { collection, onSnapshot, query, orderBy, doc, setDoc } from "firebase/firestore"
+import { collection, onSnapshot, query, orderBy, doc, setDoc, addDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase/client"
 import ProtectedRoute from "@/components/auth/protected-route"
 import { useAuth } from "@/contexts/auth-context"
@@ -13,8 +13,9 @@ import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { ArrowLeft, Upload, Loader2 } from "lucide-react"
+import { ArrowLeft, Upload, Loader2, Copy, Banknote } from "lucide-react"
 import { uploadImage, validateImageFile } from "@/lib/image-upload"
+import toast from "react-hot-toast"
 
 interface Project {
   id: string;
@@ -65,6 +66,12 @@ function ProjectsPage() {
     setViewingProject(project);
   }
 
+  const copyAccountNumber = () => {
+    const accountNumber = "0219230107"
+    navigator.clipboard.writeText(accountNumber)
+    toast.success("Account number copied to clipboard!")
+  }
+
   const handleReceiptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null
     setReceiptFile(file)
@@ -97,18 +104,20 @@ function ProjectsPage() {
         const receiptUrl = await uploadImage(receiptFile);
         setIsUploading(false);
 
-        // Create pending transaction instead of auto-approving
-        const transactionRef = doc(collection(db, "transactions"));
-        await setDoc(transactionRef, {
+        // Create pending payment instead of auto-approving
+        await addDoc(collection(db, "payments"), {
             amount: amount,
-            projectId: selectedProject.id,
-            projectTitle: selectedProject.title,
+            projectId: selectedProject.id === "general" ? "general" : selectedProject.id,
+            projectTitle: selectedProject.id === "general" ? "General Contribution" : selectedProject.title,
             userId: user?.uid,
+            userFirstName: user?.firstName,
+            userLastName: user?.lastName,
             userFullName: `${user?.firstName} ${user?.lastName}`,
             status: 'pending',
-            receiptUrl: receiptUrl,
+            proofURL: receiptUrl,
             createdAt: new Date(),
-            description: `Contribution to project: ${selectedProject.title}`,
+            date: new Date(),
+            description: selectedProject.id === "general" ? "General contribution" : `Contribution to project: ${selectedProject.title}`,
         });
         
         setSelectedProject(null);
@@ -133,6 +142,30 @@ function ProjectsPage() {
       <div className="mb-8 text-center">
         <h1 className="text-4xl font-bold">Our Social Impact Projects</h1>
         <p className="text-xl text-muted-foreground mt-2">Fund a project and make a direct impact.</p>
+        
+        {/* General Contribution Button */}
+        <div className="mt-6">
+          <Button 
+            size="lg" 
+            onClick={() => {
+              setSelectedProject({
+                id: "general",
+                title: "General Contribution",
+                description: "Contribute without selecting a specific project",
+                fundingGoal: 0,
+                currentFunding: 0,
+                status: 'open'
+              } as Project);
+              setError("");
+              setContributionAmount("");
+              setReceiptFile(null);
+            }}
+            className="shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all"
+          >
+            <Banknote className="w-5 h-5 mr-2" />
+            Make General Contribution
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -187,10 +220,53 @@ function ProjectsPage() {
       <Dialog open={selectedProject !== null} onOpenChange={() => setSelectedProject(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Contribute to {selectedProject?.title}</DialogTitle>
-            <DialogDescription>Your contribution will directly fund this project.</DialogDescription>
+            <DialogTitle>
+              {selectedProject?.id === "general" ? "Make General Contribution" : `Contribute to ${selectedProject?.title}`}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedProject?.id === "general" 
+                ? "Your contribution will support our overall mission." 
+                : "Your contribution will directly fund this project."
+              }
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+              {/* Bank Account Details */}
+              <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                      <Banknote className="w-5 h-5 text-blue-600" />
+                      <h4 className="font-semibold text-blue-900 dark:text-blue-100">Bank Transfer Details</h4>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                      <div className="flex justify-between items-center">
+                          <span className="text-gray-600 dark:text-gray-400">Account Number:</span>
+                          <div className="flex items-center gap-2">
+                              <span className="font-mono font-bold">0219230107</span>
+                              <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={copyAccountNumber}
+                                  className="h-6 w-6 p-0 hover:bg-blue-100 dark:hover:bg-blue-900"
+                              >
+                                  <Copy className="w-3 h-3" />
+                              </Button>
+                          </div>
+                      </div>
+                      <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-400">Bank:</span>
+                          <span className="font-medium">GT Bank</span>
+                      </div>
+                      <div className="flex justify-between">
+                          <span className="text-gray-600 dark:text-gray-400">Account Name:</span>
+                          <span className="font-medium">PACSDA</span>
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                          (Pan African Centre for Social Development and Accountability)
+                      </div>
+                  </div>
+              </div>
+
               <div className="space-y-2">
                   <Label htmlFor="amount">Amount (₦)</Label>
                   <Input 

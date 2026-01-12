@@ -16,9 +16,11 @@ const isBrowser = typeof window !== 'undefined';
 // UI Components
 // UI Components
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { DollarSign, Target, TrendingUp, Award, Plus, BarChart, Users, Heart, Trophy, Medal, Star, Receipt } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { DollarSign, Target, TrendingUp, Award, Plus, BarChart, Users, Heart, Trophy, Medal, Star, Receipt, Banknote, Copy } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import toast from "react-hot-toast"
 
 function DashboardPage() {
   const { user } = useAuth()
@@ -27,6 +29,12 @@ function DashboardPage() {
   const [topPartner, setTopPartner] = useState<{name: string, amount: number, id: string} | null>(null);
   const [otherTopContributors, setOtherTopContributors] = useState<{name: string, amount: number, id: string}[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const copyAccountNumber = () => {
+    const accountNumber = "0219230107"
+    navigator.clipboard.writeText(accountNumber)
+    toast.success("Account number copied to clipboard!")
+  }
 
   useEffect(() => {
     if (!isBrowser || !user || !db) {
@@ -54,16 +62,25 @@ function DashboardPage() {
            paymentDate = data.date.toDate();
         } else if (data.createdAt && typeof data.createdAt.toDate === 'function') {
            paymentDate = data.createdAt.toDate(); // Fallback to createdAt
+        } else if (data.date instanceof Date) {
+           paymentDate = data.date;
+        } else if (data.createdAt instanceof Date) {
+           paymentDate = data.createdAt;
         }
 
-        if (paymentDate && paymentDate.getMonth() === currentMonth && paymentDate.getFullYear() === currentYear) {
-           if (data.userId) {
-              if (!monthlyContributions[data.userId]) {
-                  monthlyContributions[data.userId] = { amount: 0, name: data.userFullName || 'Unknown User' };
-              }
-              monthlyContributions[data.userId].amount += data.amount;
-              if (data.userFullName) monthlyContributions[data.userId].name = data.userFullName;
-           }
+        if (paymentDate) {
+          const paymentMonth = paymentDate.getMonth();
+          const paymentYear = paymentDate.getFullYear();
+          
+          if (paymentMonth === currentMonth && paymentYear === currentYear) {
+             if (data.userId) {
+                if (!monthlyContributions[data.userId]) {
+                    monthlyContributions[data.userId] = { amount: 0, name: data.userFullName || 'Unknown User' };
+                }
+                monthlyContributions[data.userId].amount += data.amount;
+                if (data.userFullName) monthlyContributions[data.userId].name = data.userFullName;
+             }
+          }
         }
 
         // Collect all-time contributions for other top contributors
@@ -240,6 +257,49 @@ function DashboardPage() {
                             </CardHeader>
                         </Card>
                     </Link>
+                    
+                    {/* Bank Account Details Card */}
+                    <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
+                        <CardHeader className="flex flex-row items-center gap-4">
+                            <div className="bg-blue-500/10 p-3 rounded-md">
+                                <Banknote className="h-6 w-6 text-blue-600" />
+                            </div>
+                            <div>
+                                <CardTitle>Bank Transfer Details</CardTitle>
+                                <CardDescription>Quick access to account information.</CardDescription>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <div className="space-y-2 text-sm">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600 dark:text-gray-400 font-medium">Account Number:</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-mono font-bold text-blue-600 dark:text-blue-400">0219230107</span>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={copyAccountNumber}
+                                            className="h-6 w-6 p-0 hover:bg-blue-100 dark:hover:bg-blue-900"
+                                        >
+                                            <Copy className="w-3 h-3" />
+                                        </Button>
+                                    </div>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600 dark:text-gray-400 font-medium">Bank:</span>
+                                    <span className="font-medium">GT Bank</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600 dark:text-gray-400 font-medium">Account Name:</span>
+                                    <span className="font-medium">PACSDA</span>
+                                </div>
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 pt-2 border-t">
+                                (Pan African Centre for Social Development and Accountability)
+                            </div>
+                        </CardContent>
+                    </Card>
                   </div>
               </TabsContent>
 

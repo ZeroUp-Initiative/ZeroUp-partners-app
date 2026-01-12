@@ -91,7 +91,7 @@ export default function HomePage() {
                     <Link href="/login">Login</Link>
                   </Button>
                   <Button asChild className="shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all">
-                    <Link href="/signup">Join Now</Link>
+                    <Link href="/signup">Become a Zero Partner</Link>
                   </Button>
                </div>
                 <div className="md:hidden">
@@ -113,20 +113,20 @@ export default function HomePage() {
               <div className="space-y-6">
                 <Badge variant="secondary" className="glass-card px-4 py-1.5 text-sm backdrop-blur-md border-white/20 text-white">
                   <Globe className="w-3.5 h-3.5 mr-2" />
-                  Global Impact Network
+                  Zero Partners System
                 </Badge>
                 <h1 className="text-5xl lg:text-7xl font-bold text-balance leading-tight text-white tracking-tight">
-                  Drive meaningful <br/>
-                  <span className="gradient-text drop-shadow-sm">global change</span>
+                  Co‑Create the <br/>
+                  <span className="gradient-text drop-shadow-sm">Future of Social Impact</span>
                 </h1>
                 <p className="text-xl text-white/80 text-pretty leading-relaxed max-w-lg">
-                  Join a community of visionaries. Track your impact, fund transformative projects, and celebrate every milestone with transparent analytics.
+                  Become a Zero Partner. Co create sustainable social impact with communities around the world. Not charity. Partnership.
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <Button size="lg" asChild className="text-lg px-8 py-6 h-auto bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/10 btn-modern">
                   <Link href="/signup">
-                    Become a Partner
+                    Become a Zero Partner
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </Link>
                 </Button>
@@ -136,7 +136,7 @@ export default function HomePage() {
                   asChild
                   className="text-lg px-8 py-6 h-auto glass-card text-white border-white/20 hover:bg-white/10 hover:border-white/40 transition-all"
                 >
-                  <Link href="/projects">Explore Projects</Link>
+                  <Link href="#how-it-works">Learn How It Works</Link>
                 </Button>
               </div>
               
@@ -182,56 +182,130 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* What Is a ZeroUp Partner Section */}
+      <section id="what-is-zero-partner" className="py-24 px-4 bg-background">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center space-y-6 mb-16">
+            <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5">Understanding the Role</Badge>
+            <h2 className="text-4xl md:text-5xl font-bold text-balance tracking-tight">
+              What Is a <span className="text-primary">ZeroUp Partner</span>?
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed">
+              A Zero Partner is not a donor. A Zero Partner is a co‑creator—someone who actively participates in designing, supporting, and scaling social impact solutions alongside communities.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="space-y-8">
+              <div className="space-y-6">
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Users className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-2">Collaborator, Not Benefactor</h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      Zero Partners are collaborators, builders, and co‑owners of solutions shaping the future of development.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Target className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-2">Active Participation</h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      Contribute ideas, skills, resources, capital, and networks to build long‑term impact alongside communities.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Heart className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-2">Shared Ownership</h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      Every partner contributes differently, but all partners co‑own the mission and impact.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="relative">
+              <div className="aspect-square rounded-3xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 shadow-2xl relative overflow-hidden flex items-center justify-center p-8">
+                <div className="absolute inset-0 bg-grid-primary/20 [mask-image:linear-gradient(0deg,transparent,white)]" />
+                <div className="relative text-center space-y-6">
+                  <div className="w-20 h-20 mx-auto rounded-full bg-primary/20 flex items-center justify-center">
+                    <Globe className="w-10 h-10 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="text-2xl font-bold text-primary mb-2">Partnership at Zero</h4>
+                    <p className="text-muted-foreground max-w-sm mx-auto">
+                      Starting from possibility, not lack. Building from context, not assumptions.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Benefits Section */}
       <section id="benefits" className="py-24 px-4 bg-muted/30">
         <div className="container mx-auto max-w-6xl">
             <div className="text-center space-y-4 mb-20">
-            <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5 mb-4">Why Join Us?</Badge>
+            <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5 mb-4">Why Zero Partners?</Badge>
             <h2 className="text-4xl md:text-5xl font-bold text-balance tracking-tight">
-              Empowering your <span className="text-primary">impact journey</span>
+              Beyond <span className="text-primary">Traditional Development</span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-pretty">
-              We provide the tools, transparency, and community you need to make a lasting difference.
+              Traditional development models focus on giving. The Zero Partners System focuses on building—together.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                icon: TrendingUp,
-                title: "Real-time Tracking",
+                icon: Users,
+                title: "Co-Creation",
                 description:
-                  "Track every contribution with precision. See exactly where your funds go and validte the impact instantly.",
+                  "Design solutions alongside communities, not for them. Your insights and experience shape the impact.",
               },
               {
                 icon: Target,
-                title: "Impact Analytics",
+                title: "Skills & Expertise",
                 description:
-                  "Visualize your social return on investment with comprehensive dashboards and downloadable reports.",
+                  "Contribute your professional skills, knowledge, and mentorship to build sustainable solutions.",
               },
               {
-                icon: Award,
-                title: "Recognition System",
+                icon: TrendingUp,
+                title: "Funding & Resources",
                 description:
-                  "Earn verified badges and certificates as you reach milestones, showcasing your commitment to social good.",
+                  "Provide financial support and resources that enable communities to implement their vision.",
               },
                {
                 icon: Shield,
-                title: "Verified Trust",
+                title: "Network & Opportunities",
                 description:
-                  "All projects are vetted and monitored. We ensure 100% transparency in fund utilization.",
-              },
-               {
-                icon: Users,
-                title: "Global Community",
-                description:
-                  "Connect with like-minded changemakers, share stories, and collaborate on larger initiatives.",
+                  "Open doors to new partnerships, markets, and opportunities that amplify local impact.",
               },
                {
                 icon: Zap,
-                title: "Quick Action",
+                title: "Technology & Infrastructure",
                 description:
-                  "Seamless payment integrations allow you to support urgent causes in seconds, not days.",
+                  "Share technology tools, platforms, and infrastructure that enable scalable solutions.",
+              },
+               {
+                icon: Award,
+                title: "Research & Storytelling",
+                description:
+                  "Help document impact, share stories, and contribute to learning that benefits the entire ecosystem.",
               },
             ].map((feature, index) => (
               <Card key={index} className="bg-card border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 group h-full">
@@ -251,55 +325,72 @@ export default function HomePage() {
       </section>
 
       {/* Process Section */}
-      <section id="process" className="py-24 px-4 bg-background relative overflow-hidden">
+      <section id="how-it-works" className="py-24 px-4 bg-background relative overflow-hidden">
          <div className="container mx-auto max-w-6xl relative z-10">
+             <div className="text-center space-y-4 mb-20">
+                 <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5">How It Works</Badge>
+                 <h2 className="text-4xl md:text-5xl font-bold text-balance tracking-tight">
+                   The <span className="text-primary">Zero Partners System</span> Flow
+                 </h2>
+                 <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-pretty">
+                   From discovery to impact, here's how you become a Zero Partner and start co-creating meaningful change.
+                 </p>
+             </div>
+
              <div className="grid lg:grid-cols-2 gap-16 items-center">
                 <div className="order-2 lg:order-1 relative">
-                    {/* Mock UI/Image Area */}
+                    {/* 6-Step Process Visual */}
                    <div className="aspect-square rounded-3xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border border-border shadow-2xl relative overflow-hidden flex items-center justify-center p-8">
                         <div className="absolute inset-0 bg-grid-slate-200/50 [mask-image:linear-gradient(0deg,white,transparent)] dark:bg-grid-slate-800/50" />
-                        <div className="relative space-y-4 w-full max-w-sm">
-                             {/* Mock Process Steps Card */}
-                             <div className="bg-card rounded-xl p-4 shadow-lg border border-border animate-slide-in-up-delay-1 flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold">1</div>
-                                <div>
-                                    <h4 className="font-bold text-sm">Create Account</h4>
-                                    <p className="text-xs text-muted-foreground">Join in 30 seconds</p>
+                        <div className="relative space-y-3 w-full max-w-sm">
+                             {[
+                                 { step: 1, title: "Discover ZeroUp", desc: "Learn about active impact areas", icon: Globe, color: "bg-blue-100 text-blue-600" },
+                                 { step: 2, title: "Apply to Partner", desc: "Submit your partnership application", icon: Users, color: "bg-green-100 text-green-600" },
+                                 { step: 3, title: "Get Matched", desc: "Connect with relevant projects", icon: Target, color: "bg-purple-100 text-purple-600" },
+                                 { step: 4, title: "Onboard", desc: "Join the ecosystem orientation", icon: Shield, color: "bg-orange-100 text-orange-600" },
+                                 { step: 5, title: "Co-Create", desc: "Collaborate and contribute", icon: Heart, color: "bg-pink-100 text-pink-600" },
+                                 { step: 6, title: "Track Impact", desc: "Monitor outcomes and learning", icon: TrendingUp, color: "bg-cyan-100 text-cyan-600" },
+                             ].map((item, index) => (
+                                <div key={index} className={`bg-card rounded-xl p-3 shadow-lg border border-border animate-slide-in-up-delay-${index + 1} flex items-center gap-3 ${index > 0 ? 'ml-' + (index * 2) : ''}`}>
+                                    <div className={`w-8 h-8 rounded-full ${item.color} flex items-center justify-center font-bold text-sm flex-shrink-0`}>
+                                        {item.step}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="font-bold text-sm truncate">{item.title}</h4>
+                                        <p className="text-xs text-muted-foreground truncate">{item.desc}</p>
+                                    </div>
+                                    <item.icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                                 </div>
-                                <CheckCircle className="w-5 h-5 text-green-500 ml-auto" />
-                             </div>
-                              <div className="bg-card rounded-xl p-4 shadow-lg border border-border animate-slide-in-up-delay-2 flex items-center gap-4 ml-8">
-                                <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">2</div>
-                                <div>
-                                    <h4 className="font-bold text-sm">Choose Project</h4>
-                                    <p className="text-xs text-muted-foreground">Select a cause</p>
-                                </div>
-                                 <CheckCircle className="w-5 h-5 text-blue-500 ml-auto" />
-                             </div>
-                              <div className="bg-card rounded-xl p-4 shadow-lg border border-border animate-slide-in-up-delay-3 flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold">3</div>
-                                <div>
-                                    <h4 className="font-bold text-sm">Track Impact</h4>
-                                    <p className="text-xs text-muted-foreground">See results instantly</p>
-                                </div>
-                                 <Zap className="w-5 h-5 text-purple-500 ml-auto" />
-                             </div>
+                             ))}
                         </div>
                    </div>
                 </div>
                 <div className="order-1 lg:order-2 space-y-8">
                      <div className="space-y-4">
-                         <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5">How It Works</Badge>
-                        <h2 className="text-4xl font-bold leading-tight">Simple steps to <br/> <span className="text-primary">start your impact</span></h2>
+                        <h3 className="text-2xl font-bold leading-tight">
+                          From <span className="text-primary">Intention to Impact</span>
+                        </h3>
                         <p className="text-lg text-muted-foreground">
-                            We've silenced the noise. Our platform is designed to get you from intention to action in minutes.
+                            The Zero Partners System is designed to transform your desire to make a difference into meaningful, collaborative action.
                         </p>
                      </div>
                      <div className="space-y-6">
                         {[
-                            { title: "Sign Up & Verify", desc: "Create your partner profile and get verified instantly.", icon: Users },
-                            { title: "Browse & Fund", desc: "Explore curated projects and fund the ones that resonate with you.", icon: Heart },
-                            { title: "Monitor Progress", desc: "Receive real-time updates and impact reports directly to your dashboard.", icon: TrendingUp },
+                            { 
+                                title: "Discovery & Alignment", 
+                                desc: "Explore our ecosystem and find where your passion meets community needs. We help you identify the perfect match.",
+                                icon: Globe 
+                            },
+                            { 
+                                title: "Application & Profiling", 
+                                desc: "Share your skills, interests, and capacity. Our system understands not just what you give, but how you want to engage.",
+                                icon: Users 
+                            },
+                            { 
+                                title: "Matching & Onboarding", 
+                                desc: "Get connected to projects and communities where you'll create the most impact. We ensure smooth integration into the ecosystem.",
+                                icon: Target 
+                            },
                         ].map((step, i) => (
                              <div key={i} className="flex gap-4">
                                 <div className="flex-shrink-0 w-12 h-12 rounded-full border border-border flex items-center justify-center bg-muted/50">
@@ -312,8 +403,8 @@ export default function HomePage() {
                              </div>
                         ))}
                      </div>
-                     <Button size="lg" className="mt-4">
-                         View Projects <ArrowRight className="ml-2 w-4 h-4" />
+                     <Button size="lg" asChild className="mt-4">
+                         <Link href="/signup">Apply to Become a Zero Partner</Link>
                      </Button>
                 </div>
              </div>
@@ -351,26 +442,154 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Who Can Become a ZeroUp Partner Section */}
+      <section id="who-can-join" className="py-24 px-4 bg-background">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center space-y-6 mb-16">
+            <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5">Join the Movement</Badge>
+            <h2 className="text-4xl md:text-5xl font-bold text-balance tracking-tight">
+              Who Can Become a <span className="text-primary">ZeroUp Partner</span>?
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed">
+              If you care about impact and collaboration, there is a place for you in the Zero Partners System.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: Users,
+                title: "Individuals",
+                description: "Professionals, creatives, technologists, students, and diaspora contributors who want to make a difference.",
+                examples: [
+                  "Software developers",
+                  "Designers & artists", 
+                  "Researchers & academics",
+                  "Students & youth leaders"
+                ],
+                color: "text-blue-600"
+              },
+              {
+                icon: Shield,
+                title: "Organisations",
+                description: "NGOs, companies, foundations, and institutions looking to scale their impact through collaboration.",
+                examples: [
+                  "NGOs & foundations",
+                  "Startups & companies",
+                  "Educational institutions",
+                  "Development agencies"
+                ],
+                color: "text-green-600"
+              },
+              {
+                icon: Target,
+                title: "Strategic Partners",
+                description: "Long-term ecosystem collaborators who help shape strategy, systems, and future directions.",
+                examples: [
+                  "Ecosystem builders",
+                  "Policy influencers",
+                  "Innovation labs",
+                  "Network organizations"
+                ],
+                color: "text-purple-600"
+              }
+            ].map((category, index) => (
+              <Card key={index} className="bg-card border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 group h-full">
+                <CardHeader>
+                  <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
+                    <category.icon className="w-8 h-8" />
+                  </div>
+                  <CardTitle className="text-2xl mb-3">{category.title}</CardTitle>
+                  <CardContent className="p-0">
+                    <p className="text-muted-foreground leading-relaxed mb-4">
+                      {category.description}
+                    </p>
+                    <div className="space-y-2">
+                      <p className="text-sm font-semibold text-foreground">Examples:</p>
+                      <ul className="space-y-1">
+                        {category.examples.map((example, i) => (
+                          <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary/60" />
+                            {example}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </CardContent>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+
+          <div className="mt-16 text-center">
+            <div className="inline-flex items-center gap-3 p-6 rounded-2xl bg-primary/5 border border-primary/20">
+              <Heart className="w-6 h-6 text-primary" />
+              <p className="text-lg font-medium">
+                Every contribution matters. Every voice counts.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Impact Areas Section */}
+      <section id="impact-areas" className="py-24 px-4 bg-muted/30">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center space-y-6 mb-16">
+            <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5">Focus Areas</Badge>
+            <h2 className="text-4xl md:text-5xl font-bold text-balance tracking-tight">
+              <span className="text-primary">Impact Areas</span> Where We Co-Create
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed">
+              Find your area of passion and contribute to meaningful change across these key domains.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              { name: "Youth Empowerment", icon: Users, desc: "Building the next generation of leaders" },
+              { name: "Education & Digital Literacy", icon: Target, desc: "Access to quality learning for all" },
+              { name: "Technology & AI for Good", icon: Zap, desc: "Innovative solutions for social challenges" },
+              { name: "Creative Economy", icon: Award, desc: "Supporting artists and creative entrepreneurs" },
+              { name: "Community Innovation", icon: Shield, desc: "Local solutions to global challenges" },
+              { name: "Entrepreneurship & Inclusion", icon: TrendingUp, desc: "Economic opportunities for marginalized groups" }
+            ].map((area, index) => (
+              <Card key={index} className="bg-card border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 group cursor-pointer">
+                <CardHeader className="text-center">
+                  <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-4 mx-auto group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
+                    <area.icon className="w-7 h-7" />
+                  </div>
+                  <CardTitle className="text-lg mb-2">{area.name}</CardTitle>
+                  <CardContent className="p-0">
+                    <p className="text-sm text-muted-foreground">{area.desc}</p>
+                  </CardContent>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-24 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-primary/5 -skew-y-3 origin-top-left scale-110"></div>
         <div className="container mx-auto max-w-4xl text-center relative z-10">
           <div className="space-y-8 glass-card p-12 rounded-3xl border-primary/10 shadow-2xl bg-white/50 dark:bg-black/50 backdrop-blur-xl">
             <div className="space-y-4">
-              <h2 className="text-4xl md:text-5xl font-bold text-balance tracking-tight">Ready to make a difference?</h2>
+              <h2 className="text-4xl md:text-5xl font-bold text-balance tracking-tight">Ready to co-create the future?</h2>
               <p className="text-xl text-muted-foreground text-pretty max-w-2xl mx-auto">
-                Join thousands of partners already making an impact through the ZeroUp Initiative. Start your journey today.
+                Join a global ecosystem of builders shaping the future of social impact. Become a Zero Partner today.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" asChild className="text-lg px-8 py-6 h-auto shadow-xl shadow-primary/25 hover:scale-105 transition-transform">
                 <Link href="/signup">
-                  Start Your Partnership
+                  Apply to Become a Zero Partner
                   <Heart className="w-5 h-5 ml-2 fill-current" />
                 </Link>
               </Button>
               <Button variant="outline" size="lg" asChild className="text-lg px-8 py-6 h-auto bg-transparent border-primary/20 hover:bg-primary/5">
-                <Link href="/login">Existing Partner Login</Link>
+                <Link href="/login">Existing Zero Partner Login</Link>
               </Button>
             </div>
           </div>

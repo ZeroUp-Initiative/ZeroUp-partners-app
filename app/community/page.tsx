@@ -25,6 +25,7 @@ function CommunityContent() {
   const [leaderboard, setLeaderboard] = useState<any[]>([])
   const [topContributors, setTopContributors] = useState<any[]>([])
   const [recentActivities, setRecentActivities] = useState<any[]>([])
+  const [topPartnerOfTheMonth, setTopPartnerOfTheMonth] = useState<{name: string, amount: number, id: string} | null>(null)
   const [stats, setStats] = useState({
     totalPartners: 0,
     activeThisMonth: 0,
@@ -57,10 +58,55 @@ function CommunityContent() {
             // 1. Total Raised
             const totalRaised = payments.reduce((sum, p) => sum + (p.amount || 0), 0)
 
-            // 2. Aggregating User Contributions
+            // 2. Calculate Partner of the Month
+            const monthlyContributions: Record<string, { amount: number, name: string }> = {};
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+
+            payments.forEach(p => {
+                // Check for monthly top partner
+                let paymentDate = null;
+                if (p.date && typeof p.date.toDate === 'function') {
+                   paymentDate = p.date.toDate();
+                } else if (p.createdAt && typeof p.createdAt.toDate === 'function') {
+                   paymentDate = p.createdAt.toDate();
+                } else if (p.date instanceof Date) {
+                   paymentDate = p.date;
+                } else if (p.createdAt instanceof Date) {
+                   paymentDate = p.createdAt;
+                }
+
+                if (paymentDate) {
+                  const paymentMonth = paymentDate.getMonth();
+                  const paymentYear = paymentDate.getFullYear();
+                  
+                  if (paymentMonth === currentMonth && paymentYear === currentYear) {
+                     if (p.userId) {
+                        if (!monthlyContributions[p.userId]) {
+                            monthlyContributions[p.userId] = { amount: 0, name: p.userFullName || 'Unknown User' };
+                        }
+                        monthlyContributions[p.userId].amount += p.amount;
+                        if (p.userFullName) monthlyContributions[p.userId].name = p.userFullName;
+                     }
+                  }
+                }
+            });
+
+            // Find top monthly partner
+            let max = 0;
+            let top: {id: string, amount: number, name: string} | null = null;
+            Object.entries(monthlyContributions).forEach(([id, p]) => {
+                if (p.amount > max) {
+                    max = p.amount;
+                    top = { id, ...p };
+                }
+            });
+            setTopPartnerOfTheMonth(top);
+
+            // 3. Aggregating User Contributions
             const userMap = new Map<string, number>()
             const activeUsersThisMonth = new Set<string>()
-            const now = new Date()
             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
 
             payments.forEach(p => {
@@ -408,28 +454,36 @@ function CommunityContent() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Partner of the Month</CardTitle>
-                    <CardDescription>Celebrating outstanding contributions</CardDescription>
+                    <CardDescription>Celebrating outstanding contributions for {new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-center space-y-4">
-                      <Avatar className="w-20 h-20 mx-auto">
-                        <AvatarFallback className="bg-primary text-primary-foreground text-2xl">SJ</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h3 className="text-xl font-bold">Sarah Johnson</h3>
-                        <p className="text-muted-foreground">Tech for Good</p>
+                    {topPartnerOfTheMonth ? (
+                      <div className="text-center space-y-4">
+                        <Avatar className="w-20 h-20 mx-auto">
+                          <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
+                            {topPartnerOfTheMonth.name.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h3 className="text-xl font-bold">{topPartnerOfTheMonth.name}</h3>
+                          <p className="text-muted-foreground">Top Contributor</p>
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-sm">
+                            {topPartnerOfTheMonth.name}'s exceptional dedication and ₦{topPartnerOfTheMonth.amount.toLocaleString()} contribution this month helped fund important projects and make a significant impact in our community.
+                          </p>
+                          <Badge variant="secondary" className="text-xs">
+                            <Trophy className="w-3 h-3 mr-1" />
+                            Partner of the Month
+                          </Badge>
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <p className="text-sm">
-                          "Sarah's exceptional dedication and $1,200 contribution this month helped fund three new
-                          education projects, directly impacting 300+ students."
-                        </p>
-                        <Badge variant="secondary" className="text-xs">
-                          <Trophy className="w-3 h-3 mr-1" />
-                          Partner of the Month
-                        </Badge>
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground">No contributions yet this month.</p>
+                        <p className="text-sm text-muted-foreground">Be the first to be recognized!</p>
                       </div>
-                    </div>
+                    )}
                   </CardContent>
                 </Card>
 

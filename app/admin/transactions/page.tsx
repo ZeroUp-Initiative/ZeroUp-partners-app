@@ -42,7 +42,7 @@ function AdminTransactionsPage() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'declined'>('pending')
 
   useEffect(() => {
-    const q = query(collection(db, "transactions"), orderBy("createdAt", "desc"));
+    const q = query(collection(db, "payments"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const transactionsData: Transaction[] = [];
       querySnapshot.forEach((doc) => {
@@ -55,7 +55,7 @@ function AdminTransactionsPage() {
           userId: data.userId,
           userFullName: data.userFullName,
           status: data.status,
-          receiptUrl: data.receiptUrl,
+          receiptUrl: data.proofURL,
           createdAt: data.createdAt,
           description: data.description,
           adminDescription: data.adminDescription
@@ -77,7 +77,7 @@ function AdminTransactionsPage() {
       const batch = writeBatch(db);
 
       // Update transaction status
-      const transactionRef = doc(db, "transactions", selectedTransaction.id);
+      const transactionRef = doc(db, "payments", selectedTransaction.id);
       batch.update(transactionRef, {
         status: 'approved',
         adminDescription: adminDescription,
@@ -119,7 +119,7 @@ function AdminTransactionsPage() {
     setError("");
 
     try {
-      const transactionRef = doc(db, "transactions", selectedTransaction.id);
+      const transactionRef = doc(db, "payments", selectedTransaction.id);
       await updateDoc(transactionRef, {
         status: 'declined',
         adminDescription: adminDescription,

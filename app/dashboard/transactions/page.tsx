@@ -39,7 +39,7 @@ function TransactionHistoryPage() {
     if (!user) return;
 
     const q = query(
-      collection(db, "transactions"), 
+      collection(db, "payments"), 
       where("userId", "==", user.uid),
       orderBy("createdAt", "desc")
     );
@@ -56,7 +56,7 @@ function TransactionHistoryPage() {
           userId: data.userId,
           userFullName: data.userFullName,
           status: data.status,
-          receiptUrl: data.receiptUrl,
+          receiptUrl: data.proofURL,
           createdAt: data.createdAt,
           description: data.description,
           adminDescription: data.adminDescription
@@ -87,148 +87,171 @@ function TransactionHistoryPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="mb-6">
-        <Link href="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Dashboard
-        </Link>
-      </div>
-
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Transaction History</h1>
-        <p className="text-muted-foreground">View all your transactions including pending, approved, and declined.</p>
-      </div>
-
-      {/* Search Bar */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search transactions by project name or description..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8">
+        <div className="space-y-6">
+          <div className="mb-6">
+            <Link href="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Link>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Transactions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">₦{totalAmount.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">{transactions.length} transactions</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Approved</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">₦{approvedAmount.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">{transactions.filter(t => t.status === 'approved').length} approved</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">₦{pendingAmount.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">{transactions.filter(t => t.status === 'pending').length} pending</p>
-          </CardContent>
-        </Card>
-      </div>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold">Transaction History</h1>
+            <p className="text-muted-foreground">View all your transactions including pending, approved, and declined.</p>
+          </div>
 
-      {/* Transactions Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>All Transactions</CardTitle>
-          <CardDescription>Your complete transaction history</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="text-center py-8">Loading transactions...</div>
-          ) : filteredTransactions.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {searchTerm ? "No transactions found matching your search." : "No transactions found."}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredTransactions.map((transaction) => (
-                <Card key={transaction.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold">{transaction.projectTitle}</h3>
-                          <Badge variant={
-                            transaction.status === 'approved' ? 'default' :
-                            transaction.status === 'declined' ? 'destructive' : 'secondary'
-                          }>
-                            {transaction.status.toUpperCase()}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          {transaction.description ? 
-                            (transaction.description.length > 150 ? 
-                              `${transaction.description.substring(0, 150)}...` : 
-                              transaction.description
-                            ) : 'No description'
-                          }
-                        </p>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span>
+          {/* Search Bar */}
+          <Card className="mb-6">
+            <CardContent className="pt-6">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search transactions by project name or description..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Stats Cards */}
+          <div className="grid gap-4 md:grid-cols-3 mb-8">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Transactions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">₦{totalAmount.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">{transactions.length} transactions</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Approved</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">₦{approvedAmount.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">{transactions.filter(t => t.status === 'approved').length} approved</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pending</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-yellow-600">₦{pendingAmount.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">{transactions.filter(t => t.status === 'pending').length} pending</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Transactions Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>All Transactions</CardTitle>
+              <CardDescription>Your complete transaction history</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              {isLoading ? (
+                <div className="text-center py-12">Loading transactions...</div>
+              ) : filteredTransactions.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  {searchTerm ? "No transactions found matching your search." : "No transactions found."}
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Project</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredTransactions.map((transaction) => (
+                        <TableRow key={transaction.id}>
+                          <TableCell className="font-medium">
                             {transaction.createdAt?.toDate ? 
                               transaction.createdAt.toDate().toLocaleDateString() : 
                               'N/A'
                             }
-                          </span>
-                          <span className="font-semibold text-foreground">₦{transaction.amount.toLocaleString()}</span>
-                        </div>
-                      </div>
-                      {transaction.receiptUrl && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedReceipt(transaction.receiptUrl!)}
-                        >
-                          <Eye className="w-4 h-4 mr-1" />
-                          View
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                          </TableCell>
+                          <TableCell>
+                            <div className="max-w-[200px] truncate">
+                              {transaction.projectTitle}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="max-w-[250px]">
+                              <p className="text-sm truncate">
+                                {transaction.description ? 
+                                  (transaction.description.length > 50 ? 
+                                    `${transaction.description.substring(0, 50)}...` : 
+                                    transaction.description
+                                  ) : 'No description'
+                                }
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">
+                            ₦{transaction.amount.toLocaleString()}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={
+                              transaction.status === 'approved' ? 'default' :
+                              transaction.status === 'declined' ? 'destructive' : 'secondary'
+                            }>
+                              {transaction.status.toUpperCase()}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {transaction.receiptUrl && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedReceipt(transaction.receiptUrl!)}
+                                className="h-8 px-2"
+                              >
+                                <Eye className="w-3 h-3 mr-1" />
+                                <span className="hidden sm:inline">View</span>
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-      {/* Receipt Modal */}
-      <Dialog open={selectedReceipt !== null} onOpenChange={() => setSelectedReceipt(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Payment Receipt</DialogTitle>
-          </DialogHeader>
-          {selectedReceipt && (
-            <div className="mt-4">
-              <img 
-                src={selectedReceipt} 
-                alt="Payment Receipt"
-                className="w-full h-auto max-h-96 object-contain border rounded"
-              />
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+          {/* Receipt Modal */}
+          <Dialog open={selectedReceipt !== null} onOpenChange={() => setSelectedReceipt(null)}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Payment Receipt</DialogTitle>
+              </DialogHeader>
+              {selectedReceipt && (
+                <div className="mt-4">
+                  <img 
+                    src={selectedReceipt} 
+                    alt="Payment Receipt"
+                    className="w-full h-auto max-h-96 object-contain border rounded"
+                  />
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
     </div>
   )
 }
