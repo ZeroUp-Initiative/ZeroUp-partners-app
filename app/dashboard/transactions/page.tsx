@@ -78,7 +78,7 @@ function TransactionHistoryPage() {
     .reduce((sum, transaction) => sum + transaction.amount, 0);
 
   const filteredTransactions = transactions.filter(transaction => 
-    transaction.projectTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    transaction.projectTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     transaction.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 

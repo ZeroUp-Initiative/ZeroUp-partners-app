@@ -7,6 +7,8 @@ import { useAuth } from "@/contexts/auth-context"
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 import { auth, db } from "@/lib/firebase/client"
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
+import Link from "next/link"
+import Image from "next/image"
 
 // UI Components
 import { Button } from "@/components/ui/button"
@@ -15,7 +17,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeft, Eye, EyeOff } from "lucide-react"
-import Link from "next/link"
+import toast from "react-hot-toast"
 
 function FullPageLoader() {
   return (
@@ -102,10 +104,18 @@ export default function SignupPage() {
           </Link>
           <div className="flex flex-col items-center justify-center gap-4 mb-4">
              <div className="relative w-14 h-14 rounded-xl overflow-hidden shadow-2xl shadow-primary/20">
-                 <div className="absolute inset-0 bg-primary/20 backdrop-blur-sm" />
-                 <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary to-primary/60">
-                    <span className="text-primary-foreground font-bold text-2xl">Z</span>
-                 </div>
+                 <Image
+                   src="/zeroup-partners-logo-light-mode.png"
+                   alt="ZeroUp Partners Logo"
+                   fill
+                   className="object-contain dark:hidden"
+                 />
+                 <Image
+                   src="/zeroup-partners-logo-dark-mode.png"
+                   alt="ZeroUp Partners Logo"
+                   fill
+                   className="object-contain hidden dark:block"
+                 />
             </div>
             <div className="text-center">
               <h1 className="text-2xl font-bold text-foreground tracking-tight">ZeroUp Initiative</h1>

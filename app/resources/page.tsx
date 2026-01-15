@@ -2,15 +2,17 @@
 
 import ProtectedRoute from "@/components/auth/protected-route"
 import { useAuth } from "@/contexts/auth-context"
+import { useRouter } from "next/navigation"
+import { auth } from "@/lib/firebase/client"
 import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import { BookOpen, LogOut, FileText, Video, Download, Search, Calendar, Eye, ArrowLeft } from "lucide-react"
+import { ArrowLeft, Users, FileText, Video, PlayCircle, Download, Eye, Clock, Star, TrendingUp, BookOpen, Search, LogOut, Calendar } from "lucide-react"
 import Link from "next/link"
-import { auth } from "@/lib/firebase/client"
+import Image from "next/image"
+import { Input } from "@/components/ui/input"
 
 function ResourcesContent() {
   const { user } = useAuth()
@@ -148,7 +150,18 @@ function ResourcesContent() {
             <div className="flex items-center gap-3">
               <Link href="/dashboard">
                 <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors">
-                  <span className="text-primary-foreground font-bold text-lg">Z</span>
+                  <Image
+                    src="/zeroup-partners-logo-light-mode.png"
+                    alt="ZeroUp Partners Logo"
+                    fill
+                    className="object-contain dark:hidden"
+                  />
+                  <Image
+                    src="/zeroup-partners-logo-dark-mode.png"
+                    alt="ZeroUp Partners Logo"
+                    fill
+                    className="object-contain hidden dark:block"
+                  />
                 </div>
               </Link>
               <div>

@@ -10,11 +10,8 @@ import ProtectedRoute from "@/components/auth/protected-route"
 import Header from "@/components/layout/header"
 import { LogContributionModal } from "@/components/contributions/log-contribution-modal"
 
-// Check if we're in browser environment
 const isBrowser = typeof window !== 'undefined';
 
-// UI Components
-// UI Components
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { DollarSign, Target, TrendingUp, Award, Plus, BarChart, Users, Heart, Trophy, Medal, Star, Receipt, Banknote, Copy } from "lucide-react"

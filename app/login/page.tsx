@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Eye, EyeOff, ArrowLeft, TriangleAlert } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
 function FullPageLoader() {
   return (
@@ -24,6 +25,7 @@ function FullPageLoader() {
     </div>
   )
 }
+
 
 export default function LoginPage() {
   const { user, isLoading: isAuthLoading } = useAuth()
@@ -94,7 +96,7 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-background">
              <div className="absolute top-0 -left-4 w-96 h-96 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
              <div className="absolute bottom-0 -right-4 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
-              <div className="absolute inset-0 bg-[url('/bg-pattern.svg')] opacity-5"></div>
+              {/* <div className="absolute inset-0 bg-[url('/bg-pattern.svg')] opacity-5"></div> */}
         </div>
 
       <div className="w-full max-w-md space-y-8 relative z-10 animate-slide-in-up">
@@ -105,10 +107,18 @@ export default function LoginPage() {
           </Link>
            <div className="flex flex-col items-center justify-center gap-4 mb-4">
             <div className="relative w-14 h-14 rounded-xl overflow-hidden shadow-2xl shadow-primary/20">
-                 <div className="absolute inset-0 bg-primary/20 backdrop-blur-sm" />
-                 <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary to-primary/60">
-                    <span className="text-primary-foreground font-bold text-2xl">Z</span>
-                 </div>
+                 <Image
+                   src="/zeroup-partners-logo-light-mode.png"
+                   alt="ZeroUp Partners Logo"
+                   fill
+                   className="object-contain dark:hidden"
+                 />
+                 <Image
+                   src="/zeroup-partners-logo-dark-mode.png"
+                   alt="ZeroUp Partners Logo"
+                   fill
+                   className="object-contain hidden dark:block"
+                 />
             </div>
             <div className="text-center">
               <h1 className="text-2xl font-bold text-foreground tracking-tight">ZeroUp Initiative</h1>

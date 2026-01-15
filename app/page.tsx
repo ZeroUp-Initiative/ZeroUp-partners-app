@@ -16,8 +16,13 @@ export default function HomePage() {
   const [partnerCount, setPartnerCount] = useState(0);
   const [fundedProjectsCount, setFundedProjectsCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   useEffect(() => {
+    let paymentsLoaded = false;
+    let usersLoaded = false;
+    let projectsLoaded = false;
+
     // Listener for total contributions
     const paymentsQuery = query(collection(db, "payments"), where("status", "==", "approved"));
     const unsubscribePayments = onSnapshot(paymentsQuery, (querySnapshot) => {
@@ -26,21 +31,32 @@ export default function HomePage() {
         total += doc.data().amount;
       });
       setTotalContributions(total);
+      paymentsLoaded = true;
+      checkAllLoaded();
     });
 
     // Listener for total partners (users)
     const usersQuery = query(collection(db, "users"));
     const unsubscribeUsers = onSnapshot(usersQuery, (querySnapshot) => {
       setPartnerCount(querySnapshot.size);
+      usersLoaded = true;
+      checkAllLoaded();
     });
 
     // Listener for fully funded projects
     const projectsQuery = query(collection(db, "projects"), where("status", "==", "fully-funded"));
     const unsubscribeProjects = onSnapshot(projectsQuery, (querySnapshot) => {
       setFundedProjectsCount(querySnapshot.size);
+      projectsLoaded = true;
+      checkAllLoaded();
     });
-    
-    setIsLoading(false);
+
+    const checkAllLoaded = () => {
+      if (paymentsLoaded && usersLoaded && projectsLoaded) {
+        setIsLoading(false);
+        setDataLoaded(true);
+      }
+    };
 
     // Cleanup listeners on component unmount
     return () => {
@@ -59,10 +75,18 @@ export default function HomePage() {
             <div className="flex items-center gap-3">
               <Link href="/" className="flex items-center gap-3 group">
                 <div className="relative w-10 h-10 rounded-xl overflow-hidden shadow-lg group-hover:shadow-primary/25 transition-all duration-300">
-                   <div className="absolute inset-0 bg-primary/20 backdrop-blur-sm" />
-                   <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary to-primary/60">
-                      <span className="text-primary-foreground font-bold text-xl">Z</span>
-                   </div>
+                   <Image
+                     src="/zeroup-partners-logo-light-mode.png"
+                     alt="ZeroUp Partners Logo"
+                     fill
+                     className="object-contain dark:hidden"
+                   />
+                   <Image
+                     src="/zeroup-partners-logo-dark-mode.png"
+                     alt="ZeroUp Partners Logo"
+                     fill
+                     className="object-contain hidden dark:block"
+                   />
                 </div>
                 <div>
                   <h1 className="text-lg font-bold text-foreground leading-tight">Partners Hub</h1>
@@ -91,7 +115,7 @@ export default function HomePage() {
                     <Link href="/login">Login</Link>
                   </Button>
                   <Button asChild className="shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all">
-                    <Link href="/signup">Become a Zero Partner</Link>
+                    <Link href="/signup">Become a ZeroUp Partner</Link>
                   </Button>
                </div>
                 <div className="md:hidden">
@@ -113,20 +137,20 @@ export default function HomePage() {
               <div className="space-y-6">
                 <Badge variant="secondary" className="glass-card px-4 py-1.5 text-sm backdrop-blur-md border-white/20 text-white">
                   <Globe className="w-3.5 h-3.5 mr-2" />
-                  Zero Partners System
+                  ZeroUp Partners System
                 </Badge>
-                <h1 className="text-5xl lg:text-7xl font-bold text-balance leading-tight text-white tracking-tight">
+                <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-balance leading-tight text-white tracking-tight">
                   Co‑Create the <br/>
                   <span className="gradient-text drop-shadow-sm">Future of Social Impact</span>
                 </h1>
-                <p className="text-xl text-white/80 text-pretty leading-relaxed max-w-lg">
-                  Become a Zero Partner. Co create sustainable social impact with communities around the world. Not charity. Partnership.
+                <p className="text-lg sm:text-xl text-white/80 text-pretty leading-relaxed max-w-lg">
+                  Become a ZeroUp Partner. Co create sustainable social impact with communities around the world. Not charity. Partnership.
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <Button size="lg" asChild className="text-lg px-8 py-6 h-auto bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/10 btn-modern">
                   <Link href="/signup">
-                    Become a Zero Partner
+                    Become a ZeroUp Partner
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </Link>
                 </Button>
@@ -144,20 +168,38 @@ export default function HomePage() {
                  <div className="flex -space-x-3">
                     {[1,2,3,4].map(i => (
                         <div key={i} className="w-8 h-8 rounded-full border border-white/20 bg-white/10 backdrop-blur-sm flex items-center justify-center text-[10px] uppercase font-bold text-white">
-                            {i < 4 ? <Users className="w-3 h-3" /> : "+2k"}
+                            {i < 4 ? <Users className="w-3 h-3" /> : `+${partnerCount}`}
                         </div>
                     ))}
                  </div>
-                 <p>Join 2,000+ partners worldwide</p>
+                 <p>Join {partnerCount > 0 ? partnerCount.toLocaleString() : '10'}+ partners worldwide</p>
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-6 animate-slide-in-up-delay-1 relative">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-slide-in-up-delay-1 relative">
                 {/* Decorative blob */}
                 <div className="absolute -inset-10 bg-gradient-to-tr from-purple-500/30 to-blue-500/30 blur-3xl rounded-full opacity-50 -z-10 animate-pulse" />
                 
               {
-                isLoading ? <Card className="glass-card text-white col-span-2"><CardHeader><CardTitle>Loading Ecosystem...</CardTitle></CardHeader></Card> :
+                isLoading ? 
+                [
+                  { value: "0", label: "Active Partners", icon: Users, color: "text-blue-400", delay: "delay-100" },
+                  { value: "₦0", label: "Total Contributions", icon: TrendingUp, color: "text-purple-400", delay: "delay-200" },
+                  { value: "0", label: "Projects Funded", icon: Zap, color: "text-yellow-400", delay: "delay-300" },
+                  { value: "100%", label: "Transparency", icon: Shield, color: "text-green-400", delay: "delay-400" },
+                ].map((stat, index) => (
+                  <Card
+                    key={index}
+                    className={`glass-card border-white/10 hover:bg-white/5 transition-all duration-300 hover:-translate-y-2 group ${index === 1 || index === 3 ? "lg:mt-12" : ""}`}>
+                    <CardHeader className="space-y-1">
+                      <div className={`p-3 rounded-xl bg-white/5 w-fit ${stat.color} mb-2 group-hover:scale-110 transition-transform`}>
+                         <stat.icon className="w-6 h-6" />
+                      </div>
+                      <CardTitle className="text-3xl font-bold text-white tracking-tight">{stat.value}</CardTitle>
+                      <CardDescription className="text-white/60 font-medium">{stat.label}</CardDescription>
+                    </CardHeader>
+                  </Card>
+                )) :
                 [
                   { value: partnerCount.toLocaleString(), label: "Active Partners", icon: Users, color: "text-blue-400", delay: "delay-100" },
                   { value: `₦${totalContributions.toLocaleString()}`, label: "Total Contributions", icon: TrendingUp, color: "text-purple-400", delay: "delay-200" },
@@ -183,15 +225,15 @@ export default function HomePage() {
       </section>
 
       {/* What Is a ZeroUp Partner Section */}
-      <section id="what-is-zero-partner" className="py-24 px-4 bg-background">
+      <section id="who-is-zeroup-partner" className="py-24 px-4 bg-background" aria-labelledby="zeroup-partner-heading">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center space-y-6 mb-16">
             <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5">Understanding the Role</Badge>
-            <h2 className="text-4xl md:text-5xl font-bold text-balance tracking-tight">
-              What Is a <span className="text-primary">ZeroUp Partner</span>?
+            <h2 id="zeroup-partner-heading" className="text-3xl sm:text-4xl md:text-5xl font-bold text-balance tracking-tight">
+              Who Is a <span className="text-primary">ZeroUp Partner</span>?
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed">
-              A Zero Partner is not a donor. A Zero Partner is a co‑creator—someone who actively participates in designing, supporting, and scaling social impact solutions alongside communities.
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed">
+              A ZeroUp Partner is not a donor. A ZeroUp Partner is a co‑creator—someone who actively participates in designing, supporting, and scaling social impact solutions alongside communities.
             </p>
           </div>
 
@@ -205,7 +247,7 @@ export default function HomePage() {
                   <div>
                     <h3 className="text-xl font-bold mb-2">Collaborator, Not Benefactor</h3>
                     <p className="text-muted-foreground leading-relaxed">
-                      Zero Partners are collaborators, builders, and co‑owners of solutions shaping the future of development.
+                      ZeroUp Partners are collaborators, builders, and co‑owners of solutions shaping the future of development.
                     </p>
                   </div>
                 </div>
@@ -244,7 +286,7 @@ export default function HomePage() {
                     <Globe className="w-10 h-10 text-primary" />
                   </div>
                   <div>
-                    <h4 className="text-2xl font-bold text-primary mb-2">Partnership at Zero</h4>
+                    <h4 className="text-2xl font-bold text-primary mb-2">Partnership at ZeroUp</h4>
                     <p className="text-muted-foreground max-w-sm mx-auto">
                       Starting from possibility, not lack. Building from context, not assumptions.
                     </p>
@@ -260,12 +302,12 @@ export default function HomePage() {
       <section id="benefits" className="py-24 px-4 bg-muted/30">
         <div className="container mx-auto max-w-6xl">
             <div className="text-center space-y-4 mb-20">
-            <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5 mb-4">Why Zero Partners?</Badge>
+            <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5 mb-4">Why ZeroUp Partners?</Badge>
             <h2 className="text-4xl md:text-5xl font-bold text-balance tracking-tight">
               Beyond <span className="text-primary">Traditional Development</span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-pretty">
-              Traditional development models focus on giving. The Zero Partners System focuses on building—together.
+              Traditional development models focus on giving. The ZeroUp Partners System focuses on building—together.
             </p>
           </div>
 
@@ -330,10 +372,10 @@ export default function HomePage() {
              <div className="text-center space-y-4 mb-20">
                  <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5">How It Works</Badge>
                  <h2 className="text-4xl md:text-5xl font-bold text-balance tracking-tight">
-                   The <span className="text-primary">Zero Partners System</span> Flow
+                   The <span className="text-primary">ZeroUp Partners System</span> Flow
                  </h2>
                  <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-pretty">
-                   From discovery to impact, here's how you become a Zero Partner and start co-creating meaningful change.
+                   From discovery to impact, here's how you become a ZeroUp Partner and start co-creating meaningful change.
                  </p>
              </div>
 
@@ -371,7 +413,7 @@ export default function HomePage() {
                           From <span className="text-primary">Intention to Impact</span>
                         </h3>
                         <p className="text-lg text-muted-foreground">
-                            The Zero Partners System is designed to transform your desire to make a difference into meaningful, collaborative action.
+                            The ZeroUp Partners System is designed to transform your desire to make a difference into meaningful, collaborative action.
                         </p>
                      </div>
                      <div className="space-y-6">
@@ -451,7 +493,7 @@ export default function HomePage() {
               Who Can Become a <span className="text-primary">ZeroUp Partner</span>?
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed">
-              If you care about impact and collaboration, there is a place for you in the Zero Partners System.
+              If you care about impact and collaboration, there is a place for you in the ZeroUp Partners System.
             </p>
           </div>
 
@@ -581,14 +623,14 @@ export default function HomePage() {
                 Join a global ecosystem of builders shaping the future of social impact. Become a Zero Partner today.
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" asChild className="text-lg px-8 py-6 h-auto shadow-xl shadow-primary/25 hover:scale-105 transition-transform">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+              <Button size="lg" asChild className="text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 h-auto shadow-xl shadow-primary/25 hover:scale-105 transition-transform">
                 <Link href="/signup">
                   Apply to Become a Zero Partner
-                  <Heart className="w-5 h-5 ml-2 fill-current" />
+                  <Heart className="w-4 h-4 sm:w-5 sm:h-5 ml-2 fill-current" />
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" asChild className="text-lg px-8 py-6 h-auto bg-transparent border-primary/20 hover:bg-primary/5">
+              <Button variant="outline" size="lg" asChild className="text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 h-auto bg-transparent border-primary/20 hover:bg-primary/5">
                 <Link href="/login">Existing Zero Partner Login</Link>
               </Button>
             </div>
