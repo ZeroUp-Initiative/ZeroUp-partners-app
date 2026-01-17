@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import { auth } from "@/lib/firebase/client"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -189,12 +189,15 @@ function ResourcesContent() {
               </nav>
               <div className="flex items-center gap-3">
                 <Avatar>
+                  {user?.photoURL && (
+                    <AvatarImage src={user.photoURL} alt="Profile" />
+                  )}
                   <AvatarFallback className="bg-primary text-primary-foreground">
-                    {user?.email?.charAt(0)?.toUpperCase() || "U"}
+                    {user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden md:block">
-                  <p className="text-sm font-medium">{user?.email}</p>
+                  <p className="text-sm font-medium">{user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.email}</p>
                 </div>
               </div>
               <Button variant="outline" size="sm" onClick={logout}>

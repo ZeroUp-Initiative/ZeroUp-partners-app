@@ -15,6 +15,8 @@ interface UserProfile {
   role?: string;
   totalContributions?: number;
   createdAt?: any;
+  photoURL?: string;
+  emailVerified?: boolean;
 }
 
 interface AuthState {

@@ -1,17 +1,19 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { db, auth } from "@/lib/firebase/client"
 import { doc, updateDoc, setDoc } from "firebase/firestore"
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential, updateProfile } from "firebase/auth"
+import { uploadImage, validateImageFile } from "@/lib/image-upload"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Loader2, User, Lock, Calendar, Save, ArrowLeft } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Loader2, User, Lock, Calendar, Save, ArrowLeft, Camera, Upload, X } from "lucide-react"
 import Link from "next/link"
 import toast from "react-hot-toast"
 import ProtectedRoute from "@/components/auth/protected-route"
@@ -22,21 +24,85 @@ function ProfileContent() {
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
   const [organization, setOrganization] = useState("")
+  const [photoURL, setPhotoURL] = useState("")
   
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   
   const [isLoading, setIsLoading] = useState(false)
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
   const [message, setMessage] = useState({ type: "", text: "" })
+  
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (user) {
       setFirstName(user.firstName || "")
       setLastName(user.lastName || "")
       setOrganization(user.organization || "")
+      setPhotoURL(user.photoURL || "")
     }
   }, [user])
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const validation = validateImageFile(file, 5) // 5MB limit for profile photos
+    if (!validation.valid) {
+      toast.error(validation.error || "Invalid file")
+      return
+    }
+
+    setIsUploadingPhoto(true)
+    try {
+      const imageUrl = await uploadImage(file)
+      
+      // Update Firestore
+      if (user) {
+        const userRef = doc(db, "users", user.uid)
+        await setDoc(userRef, { photoURL: imageUrl, updatedAt: new Date() }, { merge: true })
+      }
+      
+      // Update Firebase Auth profile
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, { photoURL: imageUrl })
+      }
+      
+      setPhotoURL(imageUrl)
+      toast.success("Profile photo updated!")
+    } catch (error: any) {
+      console.error("Error uploading photo:", error)
+      toast.error("Failed to upload photo. Please try again.")
+    } finally {
+      setIsUploadingPhoto(false)
+    }
+  }
+
+  const handleRemovePhoto = async () => {
+    setIsUploadingPhoto(true)
+    try {
+      // Update Firestore
+      if (user) {
+        const userRef = doc(db, "users", user.uid)
+        await setDoc(userRef, { photoURL: null, updatedAt: new Date() }, { merge: true })
+      }
+      
+      // Update Firebase Auth profile
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, { photoURL: "" })
+      }
+      
+      setPhotoURL("")
+      toast.success("Profile photo removed!")
+    } catch (error: any) {
+      console.error("Error removing photo:", error)
+      toast.error("Failed to remove photo.")
+    } finally {
+      setIsUploadingPhoto(false)
+    }
+  }
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -137,15 +203,74 @@ function ProfileContent() {
        </div>
 
       <div className="flex items-center gap-4 mb-8">
-        <div className="h-20 w-20 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground text-3xl font-bold shadow-lg">
-          {user?.firstName?.charAt(0)?.toUpperCase()}
+        <div className="relative group">
+          <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
+            {photoURL ? (
+              <AvatarImage src={photoURL} alt={`${user?.firstName}'s profile`} />
+            ) : null}
+            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/60 text-primary-foreground text-3xl font-bold">
+              {user?.firstName?.charAt(0)?.toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          
+          {/* Photo upload overlay */}
+          <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              onChange={handlePhotoUpload}
+              className="hidden"
+            />
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="text-white hover:bg-white/20 h-10 w-10"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingPhoto}
+            >
+              {isUploadingPhoto ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Camera className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
+          
+          {/* Remove photo button */}
+          {photoURL && (
+            <Button
+              type="button"
+              size="icon"
+              variant="destructive"
+              className="absolute -top-1 -right-1 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={handleRemovePhoto}
+              disabled={isUploadingPhoto}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
         </div>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{user?.firstName} {user?.lastName}</h1>
           <p className="text-muted-foreground">{user?.email}</p>
-          <div className="flex items-center mt-2 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded w-fit">
-            <Calendar className="w-3 h-3 mr-1" />
-            Joined {user?.createdAt?.toDate ? new Date(user.createdAt.toDate()).toLocaleDateString() : "Recently"}
+          <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded w-fit">
+              <Calendar className="w-3 h-3 mr-1" />
+              Joined {user?.createdAt?.toDate ? new Date(user.createdAt.toDate()).toLocaleDateString() : "Recently"}
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-6 text-xs"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingPhoto}
+            >
+              <Upload className="h-3 w-3 mr-1" />
+              {photoURL ? "Change Photo" : "Add Photo"}
+            </Button>
           </div>
         </div>
       </div>

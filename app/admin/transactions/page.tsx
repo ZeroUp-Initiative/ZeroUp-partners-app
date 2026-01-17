@@ -15,7 +15,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { Loader2, CheckCircle, XCircle, Eye } from "lucide-react"
+import { Loader2, CheckCircle, XCircle, Eye, ChevronLeft, ChevronRight, Search, Download } from "lucide-react"
+import { NotificationHelpers } from "@/lib/notifications"
 
 interface Transaction {
   id: string;
@@ -40,6 +41,9 @@ function AdminTransactionsPage() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState("")
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'declined'>('pending')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [searchQuery, setSearchQuery] = useState("")
+  const itemsPerPage = 10
 
   useEffect(() => {
     const q = query(collection(db, "payments"), orderBy("createdAt", "desc"));
@@ -102,6 +106,14 @@ function AdminTransactionsPage() {
       }
 
       await batch.commit();
+      
+      // Send notification to user
+      await NotificationHelpers.contributionApproved(
+        selectedTransaction.userId,
+        selectedTransaction.amount,
+        selectedTransaction.projectTitle
+      );
+      
       setSelectedTransaction(null);
       setAdminDescription("");
     } catch (err) {
@@ -127,6 +139,13 @@ function AdminTransactionsPage() {
         processedBy: user?.uid
       });
 
+      // Send notification to user
+      await NotificationHelpers.contributionRejected(
+        selectedTransaction.userId,
+        selectedTransaction.amount,
+        adminDescription || undefined
+      );
+
       setSelectedTransaction(null);
       setAdminDescription("");
     } catch (err) {
@@ -138,9 +157,52 @@ function AdminTransactionsPage() {
   };
 
   const filteredTransactions = transactions.filter(transaction => {
-    if (filter === 'all') return true;
-    return transaction.status === filter;
+    const matchesFilter = filter === 'all' ? true : transaction.status === filter;
+    const matchesSearch = searchQuery === '' || 
+      transaction.userFullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      transaction.projectTitle?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
   });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedTransactions = filteredTransactions.slice(startIndex, startIndex + itemsPerPage);
+
+  // Reset to page 1 when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, searchQuery]);
+
+  // Export transactions to CSV
+  const exportToCSV = () => {
+    if (filteredTransactions.length === 0) return;
+    
+    const headers = ['Date', 'User', 'Project', 'Amount (₦)', 'Status', 'Admin Notes'];
+    const rows = filteredTransactions.map(t => [
+      t.createdAt?.toDate ? t.createdAt.toDate().toLocaleDateString() : 'N/A',
+      t.userFullName,
+      t.projectTitle,
+      t.amount.toString(),
+      t.status.charAt(0).toUpperCase() + t.status.slice(1),
+      t.adminDescription || ''
+    ]);
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `transactions_${filter}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   if (!user || user.role !== "admin") {
     return <p>You do not have permission to view this page.</p>
@@ -148,23 +210,42 @@ function AdminTransactionsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Manage Transactions</h1>
-        <p className="text-muted-foreground">Review and approve or decline contribution transactions.</p>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">Manage Transactions</h1>
+          <p className="text-muted-foreground">Review and approve or decline contribution transactions.</p>
+        </div>
+        {filteredTransactions.length > 0 && (
+          <Button variant="outline" onClick={exportToCSV}>
+            <Download className="w-4 h-4 mr-2" />
+            Export CSV
+          </Button>
+        )}
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex space-x-2 mb-6">
-        {(['all', 'pending', 'approved', 'declined'] as const).map((status) => (
-          <Button
-            key={status}
-            variant={filter === status ? "default" : "outline"}
-            onClick={() => setFilter(status)}
-            className="capitalize"
-          >
-            {status} ({transactions.filter(t => status === 'all' ? true : t.status === status).length})
-          </Button>
-        ))}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div className="flex space-x-2">
+          {(['all', 'pending', 'approved', 'declined'] as const).map((status) => (
+            <Button
+              key={status}
+              variant={filter === status ? "default" : "outline"}
+              onClick={() => setFilter(status)}
+              className="capitalize"
+            >
+              {status} ({transactions.filter(t => status === 'all' ? true : t.status === status).length})
+            </Button>
+          ))}
+        </div>
+        <div className="relative w-full md:w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by user or project..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
       </div>
 
       <Card>
@@ -188,7 +269,7 @@ function AdminTransactionsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTransactions.map((transaction) => (
+              {paginatedTransactions.map((transaction) => (
                 <TableRow key={transaction.id}>
                   <TableCell>
                     {transaction.createdAt?.toDate ? 
@@ -239,6 +320,60 @@ function AdminTransactionsPage() {
               ))}
             </TableBody>
           </Table>
+          
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t pt-4 mt-4">
+              <p className="text-sm text-muted-foreground">
+                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredTransactions.length)} of {filteredTransactions.length} transactions
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "outline"}
+                        size="sm"
+                        className="w-8 h-8 p-0"
+                        onClick={() => setCurrentPage(pageNum)}
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

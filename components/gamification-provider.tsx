@@ -47,7 +47,7 @@ export function GamificationProvider({ children }: GamificationProviderProps) {
 
   const triggerCelebration = useCallback(() => {
     // This can be used to trigger other celebration effects
-    console.log("🎉 Celebration triggered!")
+    // Celebration effect placeholder for future implementation
   }, [])
 
   const handleAchievementClose = useCallback(() => {

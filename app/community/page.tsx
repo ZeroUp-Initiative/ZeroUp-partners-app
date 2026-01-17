@@ -8,7 +8,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Trophy, Medal, Award, LogOut, Search, Users, TrendingUp, Crown, Star, ArrowLeft } from "lucide-react"
@@ -133,15 +133,26 @@ function CommunityContent() {
                 // For this client-side demo, we'll try to match with the user object if possible, 
                 // or we rely on the payment doc having userFullName as saved in our contribution logic.
                 const payment = payments.find(p => p.userId === uid)
+                const isCurrentUser = uid === user?.uid
+                
+                // For current user, use their name from auth context
+                let displayName = payment?.userFullName || "Partner"
+                if (isCurrentUser && user?.firstName && user?.lastName) {
+                    displayName = `${user.firstName} ${user.lastName}`
+                } else if (isCurrentUser && user?.displayName) {
+                    displayName = user.displayName
+                }
+                
                 return {
-                    name: payment?.userFullName || "Partner",
+                    name: displayName,
                     organization: "Individual Partner", // customizable if we fethed users
                     totalContributions: total,
                     impactScore: Math.min(100, Math.floor(total / 1000)), // dynamic calc
                     badges: Math.floor(total / 5000), // dynamic calc
-                    avatar: (payment?.userFullName || "U").charAt(0).toUpperCase(),
+                    avatar: displayName.charAt(0).toUpperCase(),
                     userId: uid,
-                    isCurrentUser: uid === user?.uid
+                    isCurrentUser,
+                    photoURL: isCurrentUser ? user?.photoURL : null // Show current user's photo
                 }
             }).sort((a, b) => b.totalContributions - a.totalContributions)
               .map((item, index) => ({ ...item, rank: index + 1 }))
@@ -332,6 +343,9 @@ function CommunityContent() {
                             <div className="flex items-center gap-3">
                               {getRankIcon(partner.rank)}
                               <Avatar className="w-10 h-10">
+                                {partner.photoURL && (
+                                  <AvatarImage src={partner.photoURL} alt={partner.name} />
+                                )}
                                 <AvatarFallback
                                   className={partner.isCurrentUser ? "bg-primary text-primary-foreground" : ""}
                                 >
@@ -460,6 +474,9 @@ function CommunityContent() {
                     {topPartnerOfTheMonth ? (
                       <div className="text-center space-y-4">
                         <Avatar className="w-20 h-20 mx-auto">
+                          {topPartnerOfTheMonth.id === user?.uid && user?.photoURL && (
+                            <AvatarImage src={user.photoURL} alt={topPartnerOfTheMonth.name} />
+                          )}
                           <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
                             {topPartnerOfTheMonth.name.charAt(0).toUpperCase()}
                           </AvatarFallback>

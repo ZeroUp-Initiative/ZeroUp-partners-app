@@ -11,10 +11,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { LogContributionModal } from "@/components/contributions/log-contribution-modal"
-import { Plus, LogOut, DollarSign, Calendar, FileText, CheckCircle, Clock, AlertCircle, ArrowLeft } from "lucide-react"
+import { Plus, LogOut, DollarSign, Calendar, FileText, CheckCircle, Clock, AlertCircle, ArrowLeft, Download } from "lucide-react"
 import Link from "next/link"
 import { auth, db } from "@/lib/firebase/client"
-import { collection, query, where, onSnapshot, Timestamp, getDocs, writeBatch } from "firebase/firestore"
+import { collection, query, where, onSnapshot, Timestamp } from "firebase/firestore"
 
 interface Contribution {
   id: string;
@@ -26,19 +26,6 @@ interface Contribution {
   rejectionReason?: string;
 }
 
-// --- Function to reset all contribution data ---
-const resetAllContributions = async () => {
-    const paymentsRef = collection(db, "payments");
-    const querySnapshot = await getDocs(paymentsRef);
-    const batch = writeBatch(db);
-    querySnapshot.forEach(doc => {
-        batch.delete(doc.ref);
-    });
-    await batch.commit();
-    console.log("All contribution data has been reset.");
-};
-
-
 function ContributionsContent() {
   const { user, isLoading: isAuthLoading } = useAuth();
   const [contributions, setContributions] = useState<Contribution[]>([]);
@@ -46,9 +33,6 @@ function ContributionsContent() {
 
   useEffect(() => {
     if (!user) return;
-
-    // --- UNCOMMENT THE LINE BELOW TO RESET ALL DATA ---
-    // resetAllContributions(); 
 
     setIsLoadingContributions(true);
     const contributionsQuery = query(collection(db, 'payments'), where('userId', '==', user.uid));
@@ -108,6 +92,45 @@ function ContributionsContent() {
   const verifiedCount = contributions.filter((c) => c.status === "verified").length;
   const pendingAmount = contributions.filter((c) => c.status === "pending").reduce((sum, c) => sum + c.amount, 0);
   const pendingCount = contributions.filter((c) => c.status === "pending").length;
+  
+  // Calculate this month's contributions
+  const now = new Date();
+  const thisMonthContributions = contributions.filter(c => {
+    const contributionDate = c.date;
+    return c.status === 'verified' && 
+           contributionDate.getMonth() === now.getMonth() && 
+           contributionDate.getFullYear() === now.getFullYear();
+  });
+  const thisMonthAmount = thisMonthContributions.reduce((sum, c) => sum + c.amount, 0);
+  const thisMonthCount = thisMonthContributions.length;
+
+  // Export contributions to CSV
+  const exportToCSV = () => {
+    if (contributions.length === 0) return;
+    
+    const headers = ['Date', 'Description', 'Amount (₦)', 'Status'];
+    const rows = contributions.map(c => [
+      c.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+      c.description,
+      c.amount.toString(),
+      c.status.charAt(0).toUpperCase() + c.status.slice(1)
+    ]);
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `contributions_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   if (isAuthLoading || isLoadingContributions) {
       return <div className="flex items-center justify-center h-screen">Loading Dashboard...</div>
@@ -155,8 +178,8 @@ function ContributionsContent() {
                     <Calendar className="h-4 w-4 text-blue-500" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">₦0</div>
-                    <p className="text-xs text-muted-foreground">Functionality coming soon</p>
+                    <div className="text-2xl font-bold">₦{thisMonthAmount.toLocaleString()}</div>
+                    <p className="text-xs text-muted-foreground">{thisMonthCount} verified {thisMonthCount === 1 ? 'contribution' : 'contributions'} this month</p>
                 </CardContent>
             </Card>
           </div>
@@ -166,7 +189,15 @@ function ContributionsContent() {
               <h2 className="text-2xl font-bold">Your Contributions</h2>
               <p className="text-muted-foreground">View all your contributions and their status</p>
             </div>
-            <LogContributionModal />
+            <div className="flex items-center gap-2">
+              {contributions.length > 0 && (
+                <Button variant="outline" onClick={exportToCSV}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Export CSV
+                </Button>
+              )}
+              <LogContributionModal />
+            </div>
           </div>
           
           <div className="space-y-4">

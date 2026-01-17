@@ -4,12 +4,12 @@ import { getFirestore, initializeFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAcpEr3RseZdfekkRJcMZ69y_QSusI21gs",
-  authDomain: "zeroup-partners-hub-5404-34b69.firebaseapp.com",
-  projectId: "zeroup-partners-hub-5404-34b69",
-  storageBucket: "zeroup-partners-hub-5404-34b69.firebasestorage.app",
-  messagingSenderId: "71869767739",
-  appId: "1:71869767739:web:0c7ffdfc110b4bceb5bc1e"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
 // Check if we're in a browser environment

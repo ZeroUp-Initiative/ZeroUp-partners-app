@@ -40,7 +40,6 @@ export async function uploadImage(file: File): Promise<string> {
       return data.link;
     } else {
       // If the response is the URL directly
-      console.log("API Response:", data);
       throw new Error("Could not find image URL in response");
     }
   } catch (error) {

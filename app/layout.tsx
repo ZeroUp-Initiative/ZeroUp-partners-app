@@ -20,6 +20,16 @@ export const metadata: Metadata = {
   authors: [{ name: "ZeroUp Initiative" }],
   creator: "ZeroUp Initiative",
   publisher: "ZeroUp Initiative",
+  manifest: "/manifest.json",
+  themeColor: "#6366f1",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "ZeroUp Partners",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   openGraph: {
     title: "Partners Hub | ZeroUp Initiative",
     description: "Join our community of dedicated partners tracking contributions and creating lasting impact",
@@ -55,6 +65,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={`${plusJakartaSans.variable} antialiased`}>
+      <head>
+        <link rel="apple-touch-icon" sizes="180x180" href="/images/icon-192x192.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="ZeroUp Partners" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="msapplication-TileColor" content="#6366f1" />
+        <meta name="msapplication-tap-highlight" content="no" />
+      </head>
       <body className={`font-sans ${plusJakartaSans.variable} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange={false}>
           <AppProviders>
@@ -62,6 +81,24 @@ export default function RootLayout({
           </AppProviders>
         </ThemeProvider>
         <Analytics />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').then(
+                    function(registration) {
+                      console.log('ServiceWorker registration successful');
+                    },
+                    function(err) {
+                      console.log('ServiceWorker registration failed: ', err);
+                    }
+                  );
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   )

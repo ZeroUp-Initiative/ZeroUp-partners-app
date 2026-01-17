@@ -2,12 +2,13 @@
 
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { auth } from "@/lib/firebase/client"
 import { LogOut, Menu } from "lucide-react"
 import { useState } from "react"
 import Image from "next/image"
+import { EmailVerificationBanner } from "@/components/email-verification-banner"
 
 interface HeaderProps {
   title: string;
@@ -23,7 +24,9 @@ export default function Header({ title, subtitle }: HeaderProps) {
   }
 
   return (
-    <header className="header-glass sticky top-0 z-50 transition-all duration-300">
+    <>
+      <EmailVerificationBanner />
+      <header className="header-glass sticky top-0 z-50 transition-all duration-300">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -92,6 +95,9 @@ export default function Header({ title, subtitle }: HeaderProps) {
               </div>
               <Link href="/dashboard/profile">
                 <Avatar className="h-9 w-9 ring-2 ring-primary/20 transition-all hover:ring-primary/50 cursor-pointer">
+                    {user?.photoURL && (
+                      <AvatarImage src={user.photoURL} alt={`${user.firstName}'s profile`} />
+                    )}
                     <AvatarFallback className="bg-gradient-to-br from-primary to-primary/60 text-primary-foreground font-bold">
                     {user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "U"}
                     </AvatarFallback>
@@ -145,6 +151,9 @@ export default function Header({ title, subtitle }: HeaderProps) {
                 <div className="flex items-center gap-3">
                   <Link href="/dashboard/profile" onClick={() => setIsMobileMenuOpen(false)}>
                     <Avatar className="h-8 w-8 ring-2 ring-primary/20">
+                      {user?.photoURL && (
+                        <AvatarImage src={user.photoURL} alt={`${user.firstName}'s profile`} />
+                      )}
                       <AvatarFallback className="bg-gradient-to-br from-primary to-primary/60 text-primary-foreground font-bold text-sm">
                         {user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "U"}
                       </AvatarFallback>
@@ -176,5 +185,6 @@ export default function Header({ title, subtitle }: HeaderProps) {
         </div>
       )}
     </header>
+    </>
   )
 }

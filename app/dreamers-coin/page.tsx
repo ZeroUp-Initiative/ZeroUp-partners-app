@@ -8,7 +8,7 @@ import { SlotMachineCounter } from "@/components/slot-machine-counter"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import {
@@ -288,8 +288,11 @@ function DreamersCoinContent() {
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               >
                 <Avatar className="ring-2 ring-primary/20 neon-glow-blue">
+                  {user?.photoURL && (
+                    <AvatarImage src={user.photoURL} alt="Profile" />
+                  )}
                   <AvatarFallback className="bg-primary text-primary-foreground">
-                    {user?.email?.charAt(0)?.toUpperCase() || "U"}
+                    {user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden md:block">

@@ -23,8 +23,10 @@ function DashboardPage() {
   const { user } = useAuth()
   const [totalContributions, setTotalContributions] = useState(0);
   const [myContributions, setMyContributions] = useState(0);
-  const [topPartner, setTopPartner] = useState<{name: string, amount: number, id: string} | null>(null);
-  const [otherTopContributors, setOtherTopContributors] = useState<{name: string, amount: number, id: string}[]>([]);
+  const [impactScore, setImpactScore] = useState(0);
+  const [badgesEarned, setBadgesEarned] = useState(0);
+  const [topPartner, setTopPartner] = useState<{name: string, amount: number, id: string, photoURL?: string} | null>(null);
+  const [otherTopContributors, setOtherTopContributors] = useState<{name: string, amount: number, id: string, photoURL?: string}[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const copyAccountNumber = () => {
@@ -93,18 +95,38 @@ function DashboardPage() {
 
       // Find top monthly partner
       let max = 0;
-      let top: {id: string, amount: number, name: string} | null = null;
+      let top: {id: string, amount: number, name: string, photoURL?: string} | null = null;
       Object.entries(monthlyContributions).forEach(([id, p]) => {
           if (p.amount > max) {
               max = p.amount;
-              top = { id, ...p };
+              // Use current user's name from auth context if this is them
+              let displayName = p.name;
+              if (id === user.uid) {
+                  if (user.firstName && user.lastName) {
+                      displayName = `${user.firstName} ${user.lastName}`;
+                  } else if (user.displayName) {
+                      displayName = user.displayName;
+                  }
+              }
+              top = { id, amount: p.amount, name: displayName, photoURL: id === user.uid ? user.photoURL : undefined };
           }
       });
       setTopPartner(top);
 
       // Find other top contributors (all-time, excluding current top partner)
       const sortedContributors = Object.entries(allTimeContributions)
-          .map(([id, p]) => ({ id, ...p }))
+          .map(([id, p]) => {
+              // Use current user's name from auth context if this is them
+              let displayName = p.name;
+              if (id === user.uid) {
+                  if (user.firstName && user.lastName) {
+                      displayName = `${user.firstName} ${user.lastName}`;
+                  } else if (user.displayName) {
+                      displayName = user.displayName;
+                  }
+              }
+              return { id, amount: p.amount, name: displayName, photoURL: id === user.uid ? user.photoURL : undefined };
+          })
           .sort((a, b) => b.amount - a.amount)
           .filter(contributor => contributor.id !== top?.id) // Exclude current top partner
           .slice(0, 5); // Get top 5 others
@@ -122,10 +144,50 @@ function DashboardPage() {
     );
     const unsubscribeMine = onSnapshot(myPaymentsQuery, (snapshot) => {
       let myTotal = 0;
+      const uniqueProjects = new Set<string>();
+      const monthsActive = new Set<string>();
+      
       snapshot.forEach((doc) => {
-        myTotal += doc.data().amount;
+        const data = doc.data();
+        myTotal += data.amount;
+        
+        // Track unique projects
+        if (data.projectId) {
+          uniqueProjects.add(data.projectId);
+        }
+        
+        // Track months active
+        let paymentDate = null;
+        if (data.date && typeof data.date.toDate === 'function') {
+          paymentDate = data.date.toDate();
+        } else if (data.createdAt && typeof data.createdAt.toDate === 'function') {
+          paymentDate = data.createdAt.toDate();
+        }
+        if (paymentDate) {
+          monthsActive.add(`${paymentDate.getMonth()}-${paymentDate.getFullYear()}`);
+        }
       });
+      
       setMyContributions(myTotal);
+      
+      // Calculate Impact Score (0-100)
+      // Based on: contribution amount (40%), consistency (30%), projects supported (30%)
+      const contributionScore = Math.min(40, Math.floor(myTotal / 2500) * 10); // Max 40 points at ₦10,000+
+      const consistencyScore = Math.min(30, monthsActive.size * 5); // Max 30 points at 6+ months
+      const projectsScore = Math.min(30, uniqueProjects.size * 10); // Max 30 points at 3+ projects
+      const calculatedScore = contributionScore + consistencyScore + projectsScore;
+      setImpactScore(calculatedScore);
+      
+      // Calculate badges based on achievements
+      let badges = 0;
+      if (myTotal >= 5000) badges++; // First ₦5,000 badge
+      if (myTotal >= 25000) badges++; // ₦25,000 badge
+      if (myTotal >= 100000) badges++; // ₦100,000 badge
+      if (monthsActive.size >= 3) badges++; // 3 months consistent badge
+      if (monthsActive.size >= 6) badges++; // 6 months consistent badge
+      if (uniqueProjects.size >= 2) badges++; // Multi-project supporter badge
+      if (snapshot.size >= 5) badges++; // 5+ contributions badge
+      setBadgesEarned(badges);
     });
 
     // Cleanup listeners on component unmount
@@ -196,8 +258,10 @@ function DashboardPage() {
                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
                       </CardHeader>
                       <CardContent>
-                        <div className="text-2xl font-bold">0</div>
-                        <p className="text-xs text-muted-foreground">Coming Soon</p>
+                        <div className="text-2xl font-bold">{isLoading ? '...' : impactScore}</div>
+                        <p className="text-xs text-muted-foreground">
+                          {impactScore >= 80 ? "Outstanding!" : impactScore >= 50 ? "Great progress!" : "Keep contributing!"}
+                        </p>
                       </CardContent>
                     </Card>
 
@@ -207,8 +271,10 @@ function DashboardPage() {
                         <Award className="h-4 w-4 text-muted-foreground" />
                       </CardHeader>
                       <CardContent>
-                        <div className="text-2xl font-bold">0</div>
-                        <p className="text-xs text-muted-foreground">Coming Soon</p>
+                        <div className="text-2xl font-bold">{isLoading ? '...' : badgesEarned}</div>
+                        <p className="text-xs text-muted-foreground">
+                          {badgesEarned === 0 ? "Start earning badges!" : `${7 - badgesEarned} more to unlock`}
+                        </p>
                       </CardContent>
                     </Card>
                   </div>
@@ -317,7 +383,7 @@ function DashboardPage() {
                                 <>
                                     <div className="relative">
                                         <Avatar className="h-32 w-32 border-4 border-yellow-500 shadow-xl">
-                                            <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${topPartner.name}`} />
+                                            <AvatarImage src={topPartner.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${topPartner.name}`} />
                                             <AvatarFallback>{topPartner.name[0]}</AvatarFallback>
                                         </Avatar>
                                         <div className="absolute -bottom-2 -right-2 bg-yellow-500 text-white p-2 rounded-full shadow-lg">
@@ -365,7 +431,7 @@ function DashboardPage() {
                                                     {index + 2}
                                                 </div>
                                                 <Avatar className="h-8 w-8">
-                                                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${contributor.name}`} />
+                                                    <AvatarImage src={contributor.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${contributor.name}`} />
                                                     <AvatarFallback>{contributor.name[0]}</AvatarFallback>
                                                 </Avatar>
                                                 <div>

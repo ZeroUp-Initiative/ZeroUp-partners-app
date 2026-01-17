@@ -4,7 +4,7 @@ import type React from "react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
+import { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } from "firebase/auth"
 import { auth, db } from "@/lib/firebase/client"
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import Link from "next/link"
@@ -61,12 +61,17 @@ export default function SignupPage() {
         email,
         organization: organization || "", // Optional field
         createdAt: serverTimestamp(),
+        emailVerified: false,
       })
       
       // Update Firebase Auth profile for immediate local availability
       await updateProfile(firebaseUser, {
         displayName: `${firstName} ${lastName}`.trim()
       });
+
+      // Send email verification
+      await sendEmailVerification(firebaseUser);
+      toast.success("Account created! Please check your email to verify your account.");
 
       // On success, the useEffect will handle the redirect.
     } catch (err: any) {
