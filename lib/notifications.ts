@@ -1,4 +1,4 @@
-import { db } from '@/lib/firebase/client';
+import app, { db } from '@/lib/firebase/client';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { 
   collection, 
@@ -18,6 +18,12 @@ import {
   DocumentData,
   QueryDocumentSnapshot
 } from 'firebase/firestore';
+
+// Get functions instance (lazily)
+function getFirebaseFunctions() {
+  if (!app) return null;
+  return getFunctions(app);
+}
 
 export interface Notification {
   id: string;
@@ -162,9 +168,11 @@ export const NotificationHelpers = {
     
     // Call Cloud Function to send email and push notification
     try {
-      const functions = getFunctions();
-      const onContributionApproved = httpsCallable(functions, 'onContributionApproved');
-      await onContributionApproved({ userId, amount, projectName });
+      const functions = getFirebaseFunctions();
+      if (functions) {
+        const onContributionApproved = httpsCallable(functions, 'onContributionApproved');
+        await onContributionApproved({ userId, amount, projectName });
+      }
     } catch (error) {
       console.error('Failed to send email/push notification:', error);
       // Don't throw - the in-app notification was still created
@@ -184,9 +192,11 @@ export const NotificationHelpers = {
     
     // Call Cloud Function to send email and push notification
     try {
-      const functions = getFunctions();
-      const onContributionRejected = httpsCallable(functions, 'onContributionRejected');
-      await onContributionRejected({ userId, amount, reason });
+      const functions = getFirebaseFunctions();
+      if (functions) {
+        const onContributionRejected = httpsCallable(functions, 'onContributionRejected');
+        await onContributionRejected({ userId, amount, reason });
+      }
     } catch (error) {
       console.error('Failed to send email/push notification:', error);
       // Don't throw - the in-app notification was still created

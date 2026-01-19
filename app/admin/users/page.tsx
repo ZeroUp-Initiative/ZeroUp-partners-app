@@ -33,7 +33,9 @@ import {
   User, 
   Users,
   ChevronLeft,
-  ChevronRight 
+  ChevronRight,
+  AlertTriangle,
+  Ban
 } from "lucide-react"
 import toast from "react-hot-toast"
 
@@ -46,6 +48,9 @@ interface UserData {
   role?: string;
   createdAt: any;
   emailVerified?: boolean;
+  flagged?: boolean;
+  suspended?: boolean;
+  declinedContributionsCount?: number;
 }
 
 function AdminUsersPage() {
@@ -73,7 +78,10 @@ function AdminUsersPage() {
           organization: data.organization,
           role: data.role || 'user',
           createdAt: data.createdAt,
-          emailVerified: data.emailVerified
+          emailVerified: data.emailVerified,
+          flagged: data.flagged || false,
+          suspended: data.suspended || false,
+          declinedContributionsCount: data.declinedContributionsCount || 0
         });
       });
       setUsers(usersData);
@@ -124,6 +132,33 @@ function AdminUsersPage() {
     setNewRole(role);
   };
 
+  const handleClearFlags = async (userData: UserData) => {
+    try {
+      const userRef = doc(db, "users", userData.id);
+      await updateDoc(userRef, { 
+        flagged: false, 
+        suspended: false,
+        declinedContributionsCount: 0 
+      });
+      toast.success(`Flags cleared for ${userData.firstName} ${userData.lastName}`);
+    } catch (err) {
+      toast.error("Failed to clear user flags");
+    }
+  };
+
+  const handleSuspendUser = async (userData: UserData) => {
+    try {
+      const userRef = doc(db, "users", userData.id);
+      await updateDoc(userRef, { 
+        flagged: true,
+        suspended: true 
+      });
+      toast.success(`${userData.firstName} ${userData.lastName} has been suspended`);
+    } catch (err) {
+      toast.error("Failed to suspend user");
+    }
+  };
+
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'N/A';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -136,6 +171,8 @@ function AdminUsersPage() {
 
   const adminCount = users.filter((u: UserData) => u.role === 'admin').length;
   const userCount = users.filter((u: UserData) => u.role !== 'admin').length;
+  const flaggedCount = users.filter((u: UserData) => u.flagged && !u.suspended).length;
+  const suspendedCount = users.filter((u: UserData) => u.suspended).length;
 
   if (!user || user.role !== "admin") {
     return <p>You do not have permission to view this page.</p>
@@ -149,7 +186,7 @@ function AdminUsersPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -175,6 +212,26 @@ function AdminUsersPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{userCount}</div>
+          </CardContent>
+        </Card>
+        <Card className={flaggedCount > 0 ? "border-yellow-500" : ""}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Flagged</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">{flaggedCount}</div>
+            <p className="text-xs text-muted-foreground">Under review</p>
+          </CardContent>
+        </Card>
+        <Card className={suspendedCount > 0 ? "border-red-500" : ""}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Suspended</CardTitle>
+            <Ban className="h-4 w-4 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-500">{suspendedCount}</div>
+            <p className="text-xs text-muted-foreground">Account disabled</p>
           </CardContent>
         </Card>
       </div>
@@ -213,13 +270,14 @@ function AdminUsersPage() {
                     <TableHead>Email</TableHead>
                     <TableHead>Organization</TableHead>
                     <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Joined</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {paginatedUsers.map((userData) => (
-                    <TableRow key={userData.id}>
+                    <TableRow key={userData.id} className={userData.suspended ? "bg-red-50 dark:bg-red-900/10" : userData.flagged ? "bg-yellow-50 dark:bg-yellow-900/10" : ""}>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8">
@@ -248,6 +306,21 @@ function AdminUsersPage() {
                           )}
                         </Badge>
                       </TableCell>
+                      <TableCell>
+                        {userData.suspended ? (
+                          <Badge variant="destructive" className="flex items-center gap-1 w-fit">
+                            <Ban className="w-3 h-3" />
+                            Suspended
+                          </Badge>
+                        ) : userData.flagged ? (
+                          <Badge className="bg-yellow-500 text-white flex items-center gap-1 w-fit">
+                            <AlertTriangle className="w-3 h-3" />
+                            Flagged ({userData.declinedContributionsCount})
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-green-600">Active</Badge>
+                        )}
+                      </TableCell>
                       <TableCell>{formatDate(userData.createdAt)}</TableCell>
                       <TableCell>
                         <DropdownMenu>
@@ -269,6 +342,21 @@ function AdminUsersPage() {
                               <DropdownMenuItem onClick={() => openRoleDialog(userData, 'admin')}>
                                 <Shield className="w-4 h-4 mr-2" />
                                 Make Admin
+                              </DropdownMenuItem>
+                            )}
+                            {(userData.flagged || userData.suspended) && (
+                              <DropdownMenuItem onClick={() => handleClearFlags(userData)}>
+                                <User className="w-4 h-4 mr-2" />
+                                Clear Flags & Reactivate
+                              </DropdownMenuItem>
+                            )}
+                            {!userData.suspended && userData.role !== 'admin' && (
+                              <DropdownMenuItem 
+                                onClick={() => handleSuspendUser(userData)}
+                                className="text-destructive"
+                              >
+                                <Ban className="w-4 h-4 mr-2" />
+                                Suspend User
                               </DropdownMenuItem>
                             )}
                           </DropdownMenuContent>

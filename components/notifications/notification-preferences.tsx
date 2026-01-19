@@ -38,7 +38,19 @@ export function NotificationPreferencesCard() {
         setPushSupported(supported)
         
         if (supported && typeof window !== "undefined" && "Notification" in window) {
-          setPushPermission(Notification.permission)
+          const permission = Notification.permission
+          setPushPermission(permission)
+          
+          // If permission was granted but preferences say disabled, sync them
+          if (permission === "granted" && prefs.pushEnabled) {
+            // User has enabled push before, all good
+          } else if (permission === "denied") {
+            // If permission was denied, ensure pushEnabled is false
+            if (prefs.pushEnabled) {
+              await saveNotificationPreferences(user.uid, { pushEnabled: false })
+              setPreferences(prev => prev ? { ...prev, pushEnabled: false } : prev)
+            }
+          }
         }
       } catch (error) {
         console.error("Error loading preferences:", error)
@@ -79,6 +91,8 @@ export function NotificationPreferencesCard() {
       const token = await requestNotificationPermission(user.uid)
       
       if (token) {
+        // Save the pushEnabled preference to Firestore
+        await saveNotificationPreferences(user.uid, { pushEnabled: true })
         setPreferences(prev => prev ? { ...prev, pushEnabled: true } : prev)
         setPushPermission("granted")
         toast.success("Push notifications enabled!")

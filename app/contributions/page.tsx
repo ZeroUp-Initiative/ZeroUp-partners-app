@@ -11,16 +11,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { LogContributionModal } from "@/components/contributions/log-contribution-modal"
-import { Plus, LogOut, DollarSign, Calendar, FileText, CheckCircle, Clock, AlertCircle, ArrowLeft, Download } from "lucide-react"
+import { Plus, LogOut, DollarSign, Calendar, FileText, CheckCircle, Clock, AlertCircle, ArrowLeft, Download, AlertTriangle, Ban } from "lucide-react"
 import Link from "next/link"
 import { auth, db } from "@/lib/firebase/client"
-import { collection, query, where, onSnapshot, Timestamp } from "firebase/firestore"
+import { collection, query, where, onSnapshot, Timestamp, doc, updateDoc } from "firebase/firestore"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 interface Contribution {
   id: string;
   amount: number;
   date: Date;
-  status: "verified" | "pending" | "rejected";
+  status: "approved" | "pending" | "declined";
   description: string;
   proofURL: string;
   rejectionReason?: string;
@@ -72,32 +73,63 @@ function ContributionsContent() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "verified": return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case "approved": return <CheckCircle className="w-4 h-4 text-green-500" />;
       case "pending": return <Clock className="w-4 h-4 text-yellow-500" />;
-      case "rejected": return <AlertCircle className="w-4 h-4 text-red-500" />;
+      case "declined": return <AlertCircle className="w-4 h-4 text-red-500" />;
       default: return <Clock className="w-4 h-4 text-gray-500" />;
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "verified": return <Badge className="bg-green-500 text-white">Verified</Badge>;
+      case "approved": return <Badge className="bg-green-500 text-white">Verified</Badge>;
       case "pending": return <Badge variant="outline">Pending</Badge>;
-      case "rejected": return <Badge variant="destructive">Rejected</Badge>;
+      case "declined": return <Badge variant="destructive">Rejected</Badge>;
       default: return <Badge variant="outline">Unknown</Badge>;
     }
   };
   
-  const totalContributions = contributions.filter(c => c.status === 'verified').reduce((sum, c) => sum + c.amount, 0);
-  const verifiedCount = contributions.filter((c) => c.status === "verified").length;
+  const totalContributions = contributions.filter(c => c.status === 'approved').reduce((sum, c) => sum + c.amount, 0);
+  const verifiedCount = contributions.filter((c) => c.status === "approved").length;
   const pendingAmount = contributions.filter((c) => c.status === "pending").reduce((sum, c) => sum + c.amount, 0);
   const pendingCount = contributions.filter((c) => c.status === "pending").length;
+  const declinedCount = contributions.filter((c) => c.status === "declined").length;
+  
+  // Flagging thresholds
+  const FLAG_THRESHOLD = 3; // Flag user after 3 declined contributions
+  const SUSPEND_THRESHOLD = 5; // Suspend user after 5 declined contributions
+  
+  const isFlagged = declinedCount >= FLAG_THRESHOLD;
+  const isSuspended = declinedCount >= SUSPEND_THRESHOLD;
+  
+  // Update user flagged/suspended status in Firestore when declined count changes
+  useEffect(() => {
+    if (!user) return;
+    
+    const updateUserStatus = async () => {
+      try {
+        const userRef = doc(db, 'users', user.uid);
+        await updateDoc(userRef, {
+          flagged: isFlagged,
+          suspended: isSuspended,
+          declinedContributionsCount: declinedCount
+        });
+      } catch (error) {
+        console.error('Error updating user status:', error);
+      }
+    };
+    
+    // Only update if we have contributions loaded
+    if (contributions.length > 0 || !isLoadingContributions) {
+      updateUserStatus();
+    }
+  }, [declinedCount, isFlagged, isSuspended, user, contributions.length, isLoadingContributions]);
   
   // Calculate this month's contributions
   const now = new Date();
   const thisMonthContributions = contributions.filter(c => {
     const contributionDate = c.date;
-    return c.status === 'verified' && 
+    return c.status === 'approved' && 
            contributionDate.getMonth() === now.getMonth() && 
            contributionDate.getFullYear() === now.getFullYear();
   });
@@ -142,6 +174,32 @@ function ContributionsContent() {
         <Header title="Contributions" subtitle="Track your contributions" />
 
         <main className="container mx-auto px-4 py-8">
+            {/* Suspended Account Warning */}
+            {isSuspended && (
+              <Alert variant="destructive" className="mb-6">
+                <Ban className="h-4 w-4" />
+                <AlertTitle>Account Suspended</AlertTitle>
+                <AlertDescription>
+                  Your account has been suspended due to {declinedCount} declined contributions. 
+                  You cannot log new contributions until this is resolved. 
+                  Please contact support at support@zeroup.org for assistance.
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {/* Flagged Account Warning */}
+            {isFlagged && !isSuspended && (
+              <Alert className="mb-6 border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20">
+                <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                <AlertTitle className="text-yellow-800 dark:text-yellow-200">Account Under Review</AlertTitle>
+                <AlertDescription className="text-yellow-700 dark:text-yellow-300">
+                  Your account has been flagged due to {declinedCount} declined contributions. 
+                  Please ensure all future contributions include valid proof of payment. 
+                  {SUSPEND_THRESHOLD - declinedCount} more declined contributions will result in account suspension.
+                </AlertDescription>
+              </Alert>
+            )}
+
             <div className="mb-6">
                 <Link href="/dashboard" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
                     <ArrowLeft className="w-4 h-4 mr-2" />
@@ -149,7 +207,7 @@ function ContributionsContent() {
                 </Link>
             </div>
         <div className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Verified</CardTitle>
@@ -182,6 +240,21 @@ function ContributionsContent() {
                     <p className="text-xs text-muted-foreground">{thisMonthCount} verified {thisMonthCount === 1 ? 'contribution' : 'contributions'} this month</p>
                 </CardContent>
             </Card>
+
+            <Card className={declinedCount >= FLAG_THRESHOLD ? "border-red-500" : ""}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Declined</CardTitle>
+                    <AlertCircle className="h-4 w-4 text-red-500" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold text-red-500">{declinedCount}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {declinedCount >= SUSPEND_THRESHOLD ? "Account suspended" : 
+                       declinedCount >= FLAG_THRESHOLD ? "Account flagged" : 
+                       "contributions declined"}
+                    </p>
+                </CardContent>
+            </Card>
           </div>
 
           <div className="flex justify-between items-center">
@@ -196,7 +269,14 @@ function ContributionsContent() {
                   Export CSV
                 </Button>
               )}
-              <LogContributionModal />
+              {isSuspended ? (
+                <Button disabled variant="destructive">
+                  <Ban className="w-4 h-4 mr-2" />
+                  Account Suspended
+                </Button>
+              ) : (
+                <LogContributionModal />
+              )}
             </div>
           </div>
           
@@ -215,7 +295,7 @@ function ContributionsContent() {
                                   <p className="text-sm text-muted-foreground">
                                       {contribution.date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
                                   </p>
-                                  {contribution.status === "rejected" && contribution.rejectionReason && (
+                                  {contribution.status === "declined" && contribution.rejectionReason && (
                                       <p className="text-sm text-red-500 mt-1"><b>Reason:</b> {contribution.rejectionReason}</p>
                                   )}
                                   </div>

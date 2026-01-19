@@ -101,5 +101,14 @@ service cloud.firestore {
       allow read: if isAdmin();
       allow write: if isAdmin();
     }
+    
+    // Notification preferences collection
+    match /notificationPreferences/{userId} {
+      // Users can read and write their own preferences
+      allow read, write: if isOwner(userId);
+      
+      // Admins can read all preferences
+      allow read: if isAdmin();
+    }
   }
 }

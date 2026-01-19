@@ -17,6 +17,9 @@ interface UserProfile {
   createdAt?: any;
   photoURL?: string;
   emailVerified?: boolean;
+  flagged?: boolean;
+  suspended?: boolean;
+  declinedContributionsCount?: number;
 }
 
 interface AuthState {

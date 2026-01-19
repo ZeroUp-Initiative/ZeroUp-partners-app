@@ -769,3 +769,125 @@ exports.testEmail = https.onRequest(async (req, res) => {
   }
 });
 
+/**
+ * HTTP Function: Check FCM tokens for a user (for debugging)
+ */
+exports.checkFCMTokens = https.onRequest(async (req, res) => {
+  // Allow CORS
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET, POST');
+  res.set('Access-Control-Allow-Headers', 'Content-Type');
+  
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('');
+    return;
+  }
+  
+  const { userId, email } = req.query;
+  
+  try {
+    let userDoc;
+    
+    if (userId) {
+      userDoc = await db.collection("users").doc(userId).get();
+    } else if (email) {
+      const snapshot = await db.collection("users").where("email", "==", email).limit(1).get();
+      if (!snapshot.empty) {
+        userDoc = snapshot.docs[0];
+      }
+    } else {
+      res.status(400).json({ error: "Please provide userId or email query parameter" });
+      return;
+    }
+    
+    if (!userDoc || !userDoc.exists) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+    
+    const userData = userDoc.data();
+    const fcmTokens = userData.fcmTokens || [];
+    const pushEnabled = userData.pushNotificationsEnabled || false;
+    
+    res.status(200).json({
+      success: true,
+      userId: userDoc.id,
+      email: userData.email,
+      pushNotificationsEnabled: pushEnabled,
+      fcmTokensCount: fcmTokens.length,
+      hasFCMTokens: fcmTokens.length > 0,
+      fcmTokenPreview: fcmTokens.length > 0 ? fcmTokens[0].substring(0, 30) + "..." : null
+    });
+  } catch (error) {
+    console.error("Check FCM tokens error:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * HTTP Function: Send test push notification
+ */
+exports.testPushNotification = https.onRequest(async (req, res) => {
+  // Allow CORS
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET, POST');
+  res.set('Access-Control-Allow-Headers', 'Content-Type');
+  
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('');
+    return;
+  }
+  
+  const { userId, email } = req.method === 'POST' ? req.body : req.query;
+  
+  try {
+    let userDoc;
+    
+    if (userId) {
+      userDoc = await db.collection("users").doc(userId).get();
+    } else if (email) {
+      const snapshot = await db.collection("users").where("email", "==", email).limit(1).get();
+      if (!snapshot.empty) {
+        userDoc = snapshot.docs[0];
+      }
+    } else {
+      res.status(400).json({ error: "Please provide userId or email" });
+      return;
+    }
+    
+    if (!userDoc || !userDoc.exists) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+    
+    const userData = userDoc.data();
+    const fcmTokens = userData.fcmTokens || [];
+    
+    if (fcmTokens.length === 0) {
+      res.status(400).json({ 
+        error: "No FCM tokens found for user",
+        hint: "User needs to enable push notifications in the app first"
+      });
+      return;
+    }
+    
+    // Send test push notification
+    const response = await sendPushNotification(
+      fcmTokens,
+      "🔔 Test Notification",
+      "Push notifications are working! This is a test from ZeroUp Partners.",
+      { url: "/dashboard" }
+    );
+    
+    res.status(200).json({
+      success: true,
+      message: `Test push notification sent to ${userData.email}`,
+      successCount: response?.successCount || 0,
+      failureCount: response?.failureCount || 0
+    });
+  } catch (error) {
+    console.error("Test push notification error:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+

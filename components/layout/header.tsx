@@ -9,6 +9,7 @@ import { LogOut, Menu } from "lucide-react"
 import { useState } from "react"
 import Image from "next/image"
 import { EmailVerificationBanner } from "@/components/email-verification-banner"
+import { NotificationBell } from "@/components/notification-bell"
 
 interface HeaderProps {
   title: string;
@@ -68,6 +69,11 @@ export default function Header({ title, subtitle }: HeaderProps) {
               </Link>
             </nav>
 
+            {/* Mobile Notification Bell */}
+            <div className="md:hidden">
+              <NotificationBell />
+            </div>
+
             {/* Mobile Menu Button */}
             <Button 
               variant="ghost" 
@@ -81,6 +87,9 @@ export default function Header({ title, subtitle }: HeaderProps) {
 
             {/* User Menu - Desktop */}
             <div className="hidden md:flex items-center gap-4">
+              {/* Notification Bell */}
+              <NotificationBell />
+              
               <div className="hidden md:flex flex-col items-end mr-2">
                 <Link href="/dashboard/profile" className="hover:opacity-80 transition-opacity">
                 <p className="text-sm font-bold leading-none">
