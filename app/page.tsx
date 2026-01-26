@@ -137,7 +137,7 @@ export default function HomePage() {
               />
             </div>
             <div className="hidden sm:block">
-              <h1 className={`text-lg font-bold leading-tight transition-colors ${isDark ? 'text-white group-hover:text-emerald-400' : 'text-foreground group-hover:text-primary'}`}>Zero Partners</h1>
+              <h1 className={`text-lg font-bold leading-tight transition-colors ${isDark ? 'text-white group-hover:text-emerald-400' : 'text-foreground group-hover:text-primary'}`}>ZeroUp Partners</h1>
               <p className={`text-xs ${isDark ? 'text-white/50' : 'text-muted-foreground'}`}>Impact Ecosystem</p>
             </div>
           </Link>
